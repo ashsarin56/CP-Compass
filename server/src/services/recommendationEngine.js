@@ -1,8 +1,7 @@
 const db = require('../config/db');
 const axios = require('axios');
-
+const { saveRecommendationBatch } = require('./feedback');
 const CF_API_BASE = process.env.CF_API_BASE;
-
 // In-memory cache — fetched once per server restart, refreshed every 6hrs
 let problemsetCache = null;
 let problemsetCachedAt = null;
@@ -175,7 +174,8 @@ async function generateRecommendations(userId) {
       });
     }
   }
-
+  // Save batch to DB so feedback loop can match against it
+  await saveRecommendationBatch(userId, recommendations, new Date(Date.now() + 24 * 60 * 60 * 1000));
   return {
     userId,
     handle: profile.cf_handle,

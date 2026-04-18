@@ -137,5 +137,24 @@ router.get('/recommendations/:handle', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+// POST /api/sync/:handle
+// Manually trigger a delta sync + feedback processing
+router.post('/sync/:handle', async (req, res) => {
+  const handle = req.params.handle.toUpperCase();
 
+  try {
+    const userResult = await db.query(
+      'SELECT id FROM users WHERE cf_handle = $1', [handle]
+    );
+
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found.' });
+    }
+
+    const result = await syncUser(handle);
+    res.json({ success: true, data: result });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 module.exports = router;

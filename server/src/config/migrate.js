@@ -63,7 +63,7 @@ async function migrate() {
       CREATE INDEX IF NOT EXISTS idx_submissions_user_id 
         ON submissions(user_id);
       CREATE INDEX IF NOT EXISTS idx_submissions_problem_tags 
-        ON submissions USING GIN(problem_tags);
+          ON submissions USING GIN(problem_tags);
       CREATE INDEX IF NOT EXISTS idx_submissions_verdict 
         ON submissions(verdict);
       CREATE INDEX IF NOT EXISTS idx_skill_profiles_user_id 
@@ -71,17 +71,35 @@ async function migrate() {
       CREATE INDEX IF NOT EXISTS idx_recommendations_user_id 
         ON recommendations(user_id);
     `);
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS feedback_events (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        problem_id VARCHAR(50) NOT NULL,
+        batch_id VARCHAR(100),
+        outcome VARCHAR(20) NOT NULL,
+        attempts INTEGER DEFAULT 1,
+        source VARCHAR(20) DEFAULT 'practice',
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
+    `);
 
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_feedback_user_id
+        ON feedback_events(user_id);
+      CREATE INDEX IF NOT EXISTS idx_feedback_problem_id
+        ON feedback_events(problem_id);
+    `);
     await client.query('COMMIT');
     console.log('Migration complete. All 4 tables created.');
 
-  } catch (err) {
-    await client.query('ROLLBACK');
-    console.error('Migration failed:', err.message);
-    throw err;
-  } finally {
-    client.release();
-  }
+    }catch (err) {
+      await client.query('ROLLBACK');
+      console.error('Migration failed:', err.message);
+      throw err;
+      } finally {
+        client.release();
+      }
 }
 
 migrate().then(() => process.exit(0)).catch(() => process.exit(1));
