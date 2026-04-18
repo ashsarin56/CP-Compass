@@ -1,11 +1,25 @@
 const db = require('../config/db');
-
-const CF_API_BASE = process.env.CF_API_BASE;
 const axios = require('axios');
 
-// Fetch full problemset from CF and cache it in DB
-// We call this once and store — not on every request
+const CF_API_BASE = process.env.CF_API_BASE;
+
+// In-memory cache — fetched once per server restart, refreshed every 6hrs
+let problemsetCache = null;
+let problemsetCachedAt = null;
+const CACHE_TTL_MS = 6 * 60 * 60 * 1000;
+
 async function fetchAndCacheProblems() {
+  const now = Date.now();
+
+  if (
+    problemsetCache &&
+    problemsetCachedAt &&
+    now - problemsetCachedAt < CACHE_TTL_MS
+  ) {
+    console.log('Using cached problemset');
+    return problemsetCache;
+  }
+
   const response = await axios.get(`${CF_API_BASE}/problemset.problems`, {
     timeout: 15000
   });
@@ -17,31 +31,28 @@ async function fetchAndCacheProblems() {
   const problems = response.data.result.problems;
   const stats = response.data.result.problemStatistics;
 
-  // Build stats map for quick lookup
   const statsMap = {};
   for (const s of stats) {
     statsMap[`${s.contestId}${s.index}`] = s.solvedCount;
   }
 
-  console.log(`Fetched ${problems.length} problems from CF`);
-  return { problems, statsMap };
+  problemsetCache = { problems, statsMap };
+  problemsetCachedAt = now;
+
+  console.log(`Fetched ${problems.length} problems from CF and cached`);
+  return problemsetCache;
 }
 
-// Core scoring function — how good is this problem for this user?
 function scoreProblem(problem, weakness, userSolvedIds, solvedCount) {
   const { tagRating, tag } = weakness;
 
-  // Must contain the weak tag
   if (!problem.tags.includes(tag)) return -1;
 
-  // Must not be already solved
   const problemId = `${problem.contestId}${problem.index}`;
   if (userSolvedIds.has(problemId)) return -1;
 
-  // Must have a rating
   if (!problem.rating) return -1;
 
-  // ZPD fit: target skill + 50 to 150 above current tag rating
   const targetMin = tagRating + 50;
   const targetMax = tagRating + 150;
   const withinZPD = problem.rating >= targetMin && problem.rating <= targetMax;
@@ -49,24 +60,17 @@ function scoreProblem(problem, weakness, userSolvedIds, solvedCount) {
 
   let score = 100;
 
-  // Freshness: prefer higher contest IDs (more recent)
   if (problem.contestId) {
-    score += Math.min(problem.contestId / 1000, 30); // up to +30
+    score += Math.min(problem.contestId / 1000, 30);
   }
 
-  // Popularity: problems with more solves are better validated
   const solves = solvedCount || 0;
   if (solves > 1000) score += 10;
   if (solves > 5000) score += 5;
 
-  // Div3/Div4 problems are less interesting (contest IDs pattern)
-  // We can't perfectly detect this without contest data, skip for now
-
   return score;
 }
 
-// Generate thinking prompts based on problem constraints
-// This is the structured thinking layer — not hints, constraint analysis
 function generateThinkingPrompts(problem) {
   const prompts = [];
   const rating = problem.rating || 0;
@@ -77,29 +81,33 @@ function generateThinkingPrompts(problem) {
   if (tags.includes('dp')) {
     prompts.push(`What is the state? What does dp[i] represent?`);
   } else if (tags.includes('graphs') || tags.includes('dfs and similar')) {
-    prompts.push(`Is this a directed or undirected graph problem? What traversal makes sense?`);
+    prompts.push(`Is this directed or undirected? What traversal makes sense?`);
   } else if (tags.includes('binary search')) {
     prompts.push(`What are you binary searching on — a value or an answer?`);
   } else if (tags.includes('greedy')) {
     prompts.push(`What local choice leads to the global optimum? Can you prove it?`);
   } else if (tags.includes('math') || tags.includes('number theory')) {
     prompts.push(`Is there a mathematical pattern in small cases?`);
+  } else if (tags.includes('strings')) {
+    prompts.push(`What property of the string are you exploiting — prefix, suffix, frequency?`);
+  } else if (tags.includes('sortings')) {
+    prompts.push(`Does sorting the input expose a simpler structure to work with?`);
+  } else if (tags.includes('brute force')) {
+    prompts.push(`What is the brute force? Can you prune it or find the pattern it reveals?`);
   } else {
     prompts.push(`What structure in the input can you exploit?`);
   }
 
   if (rating >= 1400) {
-    prompts.push(`What happens at the boundary/edge cases? Does your solution handle n=1, empty input, max constraints?`);
+    prompts.push(`What are the edge cases? Does your solution handle n=1, empty input, max constraints?`);
   }
 
   return prompts;
 }
 
-// Main function: generate recommendation batch for a user
 async function generateRecommendations(userId) {
-  // Step 1: Get user's skill profile
   const profileResult = await db.query(
-    `SELECT sp.*, u.cf_handle 
+    `SELECT sp.*, u.cf_handle
      FROM skill_profiles sp
      JOIN users u ON u.id = sp.user_id
      WHERE sp.user_id = $1`,
@@ -118,7 +126,6 @@ async function generateRecommendations(userId) {
     throw new Error('No weaknesses detected. Profile may need more data.');
   }
 
-  // Step 2: Get all problems user already solved
   const solvedResult = await db.query(
     `SELECT DISTINCT problem_id FROM submissions
      WHERE user_id = $1 AND verdict = 'OK'`,
@@ -126,14 +133,10 @@ async function generateRecommendations(userId) {
   );
   const userSolvedIds = new Set(solvedResult.rows.map(r => r.problem_id));
 
-  // Step 3: Fetch problemset from CF
   const { problems, statsMap } = await fetchAndCacheProblems();
 
-  // Step 4: For each weakness, find best matching problems
   const recommendations = [];
   const usedProblemIds = new Set();
-
-  // Take top 3 weaknesses max
   const topWeaknesses = weaknesses.slice(0, 3);
 
   for (const weakness of topWeaknesses) {
@@ -173,7 +176,6 @@ async function generateRecommendations(userId) {
     }
   }
 
-  // Step 5: Save batch to DB (we'll add recommendations table next)
   return {
     userId,
     handle: profile.cf_handle,

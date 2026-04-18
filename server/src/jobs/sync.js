@@ -4,7 +4,7 @@ const { getUserSubmissions, getUserInfo } = require('../services/cf');
 // Main sync function — called on register and by cron
 async function syncUser(cfHandle) {
   const client = await db.connect();
-
+  cfHandle = cfHandle.trim().toUpperCase();
   try {
     console.log(`Starting sync for: ${cfHandle}`);
 

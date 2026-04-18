@@ -14,13 +14,13 @@ export default function Home({ onAnalyzed }) {
     setMessage('Fetching your CF submissions...')
 
     try {
-      // Step 1: sync submissions
       const reg = await registerUser(handle.trim())
-      if (!reg.success) throw new Error(reg.error)
-
-      setMessage(`Synced ${reg.data.submissionsStored} submissions. Building your skill profile...`)
-
-      // Step 2: compute profile
+        if (!reg.success) throw new Error(reg.error)
+        
+        const syncMsg = reg.data.cached
+        ? 'Profile found. Building skill diagnosis...'
+        : `Synced ${reg.data.submissionsStored} submissions. Building your skill profile...`
+        setMessage(syncMsg)
       const profile = await computeProfile(handle.trim())
       if (!profile.success) throw new Error(profile.error)
 
