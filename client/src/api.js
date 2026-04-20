@@ -8,7 +8,6 @@ export async function registerUser(handle) {
   });
   return res.json();
 }
-
 export async function computeProfile(handle) {
   const res = await fetch(`${BASE}/profile/${handle}/compute`, {
     method: 'POST'
@@ -23,5 +22,9 @@ export async function getProfile(handle) {
 
 export async function getRecommendations(handle) {
   const res = await fetch(`${BASE}/recommendations/${handle}`);
+  return res.json();
+}
+export async function getRadar(handle) {
+  const res = await fetch(`${BASE}/radar/${handle}`);
   return res.json();
 }

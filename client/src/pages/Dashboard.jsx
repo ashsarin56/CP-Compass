@@ -36,7 +36,22 @@ export default function Dashboard({ handle, onBack }) {
   return (
     <div style={styles.container}>
       <div style={styles.header}>
-        <button onClick={onBack} style={styles.backBtn}>← Back</button>
+        <div style={styles.buttonGroup}>
+          <button onClick={onBack} style={styles.backBtn}>← Back</button>
+          <button
+            onClick={() => {
+              window.open(`/radar/${handle}`, '_blank')
+            }}
+            style={{
+              ...styles.backBtn,
+              background: 'linear-gradient(135deg, #4a9eed22, #8b5cf622)',
+              border: '1px solid #4a9eed44',
+              color: '#4a9eed'
+            }}
+          >
+            Share Radar ↗
+          </button>
+        </div>
         <div>
           <h2 style={styles.handle}>{handle}</h2>
           <p style={styles.globalEst}>
@@ -137,6 +152,7 @@ const styles = {
   container: { maxWidth: '1100px', margin: '0 auto', padding: '2rem' },
   center: { display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' },
   header: { display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2rem' },
+  buttonGroup: { display: 'flex', gap: '0.5rem' },
   backBtn: { background: '#1a1a1a', border: '1px solid #333', color: '#a0a0a0', padding: '0.5rem 1rem', borderRadius: '6px', fontSize: '0.9rem' },
   handle: { fontSize: '1.5rem', fontWeight: '700' },
   globalEst: { color: '#a0a0a0', fontSize: '0.9rem', marginTop: '0.25rem' },

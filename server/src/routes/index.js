@@ -157,4 +157,62 @@ router.post('/sync/:handle', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+
+router.get('/radar/:handle', async (req, res) => {
+  const handle = req.params.handle.toUpperCase();
+
+  try {
+    // Check if we have a computed profile
+    const result = await db.query(
+      `SELECT sp.global_estimate, sp.tag_skills, sp.weakness_vector,
+              sp.computed_at, sp.submission_count, u.cf_handle
+       FROM skill_profiles sp
+       JOIN users u ON u.id = sp.user_id
+       WHERE u.cf_handle = $1`,
+      [handle]
+    );
+
+    if (result.rows.length === 0) {
+      // Auto-register and compute if not found
+      // This makes the radar work even for first-time visitors
+      const syncResult = await syncUser(handle);
+      const userResult = await db.query(
+        'SELECT id FROM users WHERE cf_handle = $1', [handle]
+      );
+      const userId = userResult.rows[0].id;
+      const profile = await buildAndSaveProfile(userId);
+
+      return res.json({
+        success: true,
+        data: {
+          handle,
+          globalEstimate: profile.globalEstimate,
+          tagSkills: profile.tagSkills,
+          weaknesses: profile.weaknesses,
+          submissionCount: profile.submissionCount,
+          computedAt: new Date().toISOString(),
+          isPublic: true
+        }
+      });
+    }
+
+    const row = result.rows[0];
+    res.json({
+      success: true,
+      data: {
+        handle: row.cf_handle,
+        globalEstimate: row.global_estimate,
+        tagSkills: row.tag_skills,
+        weaknesses: row.weakness_vector,
+        submissionCount: row.submission_count,
+        computedAt: row.computed_at,
+        isPublic: true
+      }
+    });
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 module.exports = router;

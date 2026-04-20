@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { registerUser, computeProfile } from '../api'
 
-export default function Home({ onAnalyzed }) {
+export default function Home({ onAnalyzed, onGoToRadar }) {
   const [handle, setHandle] = useState('')
   const [status, setStatus] = useState(null) // null | 'loading' | 'error'
   const [message, setMessage] = useState('')
@@ -71,6 +71,20 @@ export default function Home({ onAnalyzed }) {
             {message}
           </p>
         )}
+
+        <p style={styles.radarLink}>
+          Just want to see your skill map?{' '}
+          <button
+            style={styles.radarLinkBtn}
+            onClick={() => {
+              if (handle.trim()) {
+                onGoToRadar(handle.trim())
+              }
+            }}
+          >
+            View Radar Only →
+          </button>
+        </p>
       </div>
     </div>
   )
@@ -130,5 +144,18 @@ const styles = {
   message: {
     marginTop: '1rem',
     fontSize: '0.9rem'
+  },
+  radarLink: {
+    marginTop: '1.5rem',
+    fontSize: '0.85rem',
+    color: '#555'
+  },
+  radarLinkBtn: {
+    background: 'none',
+    border: 'none',
+    color: '#4a9eed',
+    fontSize: '0.85rem',
+    cursor: 'pointer',
+    textDecoration: 'underline'
   }
 }
