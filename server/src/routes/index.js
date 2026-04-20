@@ -3,6 +3,7 @@ const router = express.Router();
 const { syncUser } = require('../jobs/sync');
 const { buildAndSaveProfile } = require('../services/skillEngine');
 const { generateRecommendations } = require('../services/recommendationEngine');
+const authMiddleware = require('../middleware/auth');
 const db = require('../config/db');
 
 // POST /api/register
@@ -69,7 +70,7 @@ router.get('/user/:handle', async (req, res) => {
 });
 
 // POST /api/profile/:handle/compute
-router.post('/profile/:handle/compute', async (req, res) => {
+router.post('/profile/:handle/compute',authMiddleware,async (req, res) => {
   const handle = req.params.handle.toUpperCase();
 
   try {
@@ -116,7 +117,7 @@ router.get('/profile/:handle', async (req, res) => {
 });
 
 // GET /api/recommendations/:handle
-router.get('/recommendations/:handle', async (req, res) => {
+router.get('/recommendations/:handle',authMiddleware, async (req, res) => {
   const handle = req.params.handle.toUpperCase();
 
   try {
@@ -139,7 +140,7 @@ router.get('/recommendations/:handle', async (req, res) => {
 });
 // POST /api/sync/:handle
 // Manually trigger a delta sync + feedback processing
-router.post('/sync/:handle', async (req, res) => {
+router.post('/sync/:handle', authMiddleware, async (req, res) => {
   const handle = req.params.handle.toUpperCase();
 
   try {
