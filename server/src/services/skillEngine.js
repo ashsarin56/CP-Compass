@@ -1,12 +1,11 @@
-const db = require('../config/db');
+const Submission = require('../models/Submission');
+const SkillProfile = require('../models/SkillProfile');
 
-// How far back we look (90 days half-life for recency decay)
 const RECENCY_HALF_LIFE_DAYS = 90;
 const MIN_SAMPLES_FOR_CONFIDENCE = 5;
-const WEAKNESS_GAP_THRESHOLD = 150; // tag skill 150 below global = weak
+const WEAKNESS_GAP_THRESHOLD = 150; 
 
-// Recency weight: problems solved recently matter more
-// e^(-t / halfLife) where t is days ago
+//e^(-t / halfLife) where t is days ago
 function recencyWeight(submittedAt) {
   const now = Date.now();
   const submittedMs = new Date(submittedAt).getTime();
@@ -14,37 +13,24 @@ function recencyWeight(submittedAt) {
   return Math.exp(-daysAgo / RECENCY_HALF_LIFE_DAYS);
 }
 
-// Contest submissions carry more signal than practice
 function contestMultiplier(isContest) {
   return isContest ? 1.5 : 1.0;
 }
-
-// Core function: build per-tag skill estimates from submissions
 async function computeSkillVector(userId) {
-  // Fetch all AC submissions with ratings for this user
-  const result = await db.query(
-    `SELECT problem_tags, problem_rating, is_contest_submission, submitted_at
-     FROM submissions
-     WHERE user_id = $1
-       AND verdict = 'OK'
-       AND problem_rating IS NOT NULL
-       AND problem_rating > 0
-     ORDER BY submitted_at DESC`,
-    [userId]
-  );
-
-  const submissions = result.rows;
+  const submissions = await Submission.find({
+    user_id: userId,
+    verdict: 'OK',
+    problem_rating: { $gt: 0, $ne: null }
+  }).sort({ submitted_at: -1 }).lean();
 
   if (submissions.length === 0) {
     return { tagSkills: {}, globalEstimate: 0, submissionCount: 0 };
   }
 
-  // Accumulate weighted ratings per tag
-  // tagData[tag] = { weightedSum, totalWeight, count }
   const tagData = {};
 
   for (const sub of submissions) {
-    const weight = recencyWeight(sub.submitted_at) * 
+    const weight = recencyWeight(sub.submitted_at) *
                    contestMultiplier(sub.is_contest_submission);
     const rating = sub.problem_rating;
 
@@ -57,8 +43,6 @@ async function computeSkillVector(userId) {
       tagData[tag].count += 1;
     }
   }
-
-  // Convert to skill estimates with confidence levels
   const tagSkills = {};
   for (const [tag, data] of Object.entries(tagData)) {
     const estimatedRating = Math.round(data.weightedSum / data.totalWeight);
@@ -73,8 +57,6 @@ async function computeSkillVector(userId) {
       sampleSize: data.count
     };
   }
-
-  // Global estimate: weighted average across all AC submissions
   let globalWeightedSum = 0;
   let globalTotalWeight = 0;
   for (const sub of submissions) {
@@ -88,12 +70,10 @@ async function computeSkillVector(userId) {
   return { tagSkills, globalEstimate, submissionCount: submissions.length };
 }
 
-// Detect weaknesses: tags where skill is significantly below global
 function detectWeaknesses(tagSkills, globalEstimate) {
-  // Filter to only medium/high confidence tags
   const reliableTags = Object.entries(tagSkills)
     .filter(([_, data]) => data.confidence !== 'low')
-    .sort((a, b) => a[1].rating - b[1].rating); // ascending — weakest first
+    .sort((a, b) => a[1].rating - b[1].rating); 
 
   if (reliableTags.length === 0) return [];
 
@@ -120,36 +100,33 @@ function detectWeaknesses(tagSkills, globalEstimate) {
       });
     }
   }
-
   return weaknesses.sort((a, b) => b.gap - a.gap);
 }
-
-// Also compute WA rate per tag — another weakness signal
 async function computeWARates(userId) {
-  const result = await db.query(
-    `SELECT 
-       unnest(problem_tags) as tag,
-       COUNT(*) FILTER (WHERE verdict = 'WRONG_ANSWER') as wa_count,
-       COUNT(*) as total_count
-     FROM submissions
-     WHERE user_id = $1
-       AND problem_rating IS NOT NULL
-     GROUP BY tag
-     HAVING COUNT(*) >= 5`,
-    [userId]
-  );
+  const pipeline = [
+    { $match: { user_id: userId, problem_rating: { $ne: null } } },
+    { $unwind: '$problem_tags' },
+    { $group: {
+        _id: '$problem_tags',
+        wa_count: {
+          $sum: { $cond: [{ $eq: ['$verdict', 'WRONG_ANSWER'] }, 1, 0] }
+        },
+        total_count: { $sum: 1 }
+    }},
+    { $match: { total_count: { $gte: 5 } } }
+  ];
+
+  const results = await Submission.aggregate(pipeline);
 
   const waRates = {};
-  for (const row of result.rows) {
-    waRates[row.tag] = {
+  for (const row of results) {
+    waRates[row._id] = {
       waRate: parseFloat((row.wa_count / row.total_count).toFixed(2)),
-      totalAttempts: parseInt(row.total_count)
+      totalAttempts: row.total_count
     };
   }
   return waRates;
 }
-
-// Master function — runs full computation and saves to DB
 async function buildAndSaveProfile(userId) {
   console.log(`Computing skill profile for user ${userId}`);
 
@@ -161,32 +138,21 @@ async function buildAndSaveProfile(userId) {
 
   const weaknesses = detectWeaknesses(tagSkills, globalEstimate);
 
-  // Enrich weaknesses with WA rate data where available
   const enrichedWeaknesses = weaknesses.map(w => ({
     ...w,
     waRate: waRates[w.tag]?.waRate || null
   }));
 
-  // Upsert into skill_profiles
-  await db.query(
-    `INSERT INTO skill_profiles 
-       (user_id, global_estimate, tag_skills, weakness_vector, 
-        computed_at, submission_count)
-     VALUES ($1, $2, $3, $4, NOW(), $5)
-     ON CONFLICT (user_id) 
-     DO UPDATE SET
-       global_estimate = $2,
-       tag_skills = $3,
-       weakness_vector = $4,
-       computed_at = NOW(),
-       submission_count = $5`,
-    [
-      userId,
-      globalEstimate,
-      JSON.stringify(tagSkills),
-      JSON.stringify(enrichedWeaknesses),
-      submissionCount
-    ]
+  await SkillProfile.findOneAndUpdate(
+    { user_id: userId },
+    {
+      global_estimate: globalEstimate,
+      tag_skills: tagSkills,
+      weakness_vector: enrichedWeaknesses,
+      computed_at: new Date(),
+      submission_count: submissionCount
+    },
+    { upsert: true, returnDocument: 'after' }
   );
 
   console.log(`Profile saved: global=${globalEstimate}, weaknesses=${enrichedWeaknesses.length}`);
@@ -198,5 +164,4 @@ async function buildAndSaveProfile(userId) {
     submissionCount
   };
 }
-
 module.exports = { buildAndSaveProfile, computeSkillVector, detectWeaknesses };

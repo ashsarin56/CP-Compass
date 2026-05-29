@@ -1,7 +1,11 @@
-const db = require('../config/db');
+const Submission = require('../models/Submission');
+const SkillProfile = require('../models/SkillProfile');
+const User = require('../models/User');
 const axios = require('axios');
 const { saveRecommendationBatch } = require('./feedback');
+
 const CF_API_BASE = process.env.CF_API_BASE;
+
 // In-memory cache — fetched once per server restart, refreshed every 6hrs
 let problemsetCache = null;
 let problemsetCachedAt = null;
@@ -105,19 +109,13 @@ function generateThinkingPrompts(problem) {
 }
 
 async function generateRecommendations(userId) {
-  const profileResult = await db.query(
-    `SELECT sp.*, u.cf_handle
-     FROM skill_profiles sp
-     JOIN users u ON u.id = sp.user_id
-     WHERE sp.user_id = $1`,
-    [userId]
-  );
-
-  if (profileResult.rows.length === 0) {
+  // Get skill profile with user handle
+  const profile = await SkillProfile.findOne({ user_id: userId }).lean();
+  if (!profile) {
     throw new Error('No skill profile found. Run computation first.');
   }
 
-  const profile = profileResult.rows[0];
+  const user = await User.findById(userId).lean();
   const weaknesses = profile.weakness_vector;
   const globalEstimate = profile.global_estimate;
 
@@ -125,12 +123,12 @@ async function generateRecommendations(userId) {
     throw new Error('No weaknesses detected. Profile may need more data.');
   }
 
-  const solvedResult = await db.query(
-    `SELECT DISTINCT problem_id FROM submissions
-     WHERE user_id = $1 AND verdict = 'OK'`,
-    [userId]
-  );
-  const userSolvedIds = new Set(solvedResult.rows.map(r => r.problem_id));
+  // Get all solved problem IDs
+  const solvedIds = await Submission.distinct('problem_id', {
+    user_id: userId,
+    verdict: 'OK'
+  });
+  const userSolvedIds = new Set(solvedIds);
 
   const { problems, statsMap } = await fetchAndCacheProblems();
 
@@ -174,11 +172,13 @@ async function generateRecommendations(userId) {
       });
     }
   }
+
   // Save batch to DB so feedback loop can match against it
   await saveRecommendationBatch(userId, recommendations, new Date(Date.now() + 24 * 60 * 60 * 1000));
+
   return {
     userId,
-    handle: profile.cf_handle,
+    handle: user?.cf_handle,
     globalEstimate,
     batch: recommendations,
     generatedAt: new Date().toISOString(),
