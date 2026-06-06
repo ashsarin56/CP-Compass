@@ -1,5 +1,5 @@
 const User = require('../models/User');
-const { syncUser } = require('../jobs/sync');
+const syncService = require('../jobs/sync');
 
 async function register(req, res) {
   const { handle } = req.body;
@@ -7,7 +7,7 @@ async function register(req, res) {
     return res.status(400).json({ error: 'CF handle is required' });
   }
 
-  const normalizedHandle = handle.trim().toUpperCase();
+  const normalizedHandle = syncService.normalizeHandle(handle);
   try {
     const existing = await User.findOne({ cf_handle: normalizedHandle });
 
@@ -27,7 +27,7 @@ async function register(req, res) {
         });
       }
     }
-    const result = await syncUser(normalizedHandle);
+    const result = await syncService.syncUser(normalizedHandle);
     res.json({
       success: true,
       message: `Synced ${result.submissionsStored} submissions`,
@@ -39,7 +39,7 @@ async function register(req, res) {
 }
 
 async function getUser(req, res) {
-  const handle = req.params.handle.toUpperCase();
+  const handle = syncService.normalizeHandle(req.params.handle);
   try {
     const user = await User.findOne({ cf_handle: handle })
       .select('_id cf_handle createdAt last_synced_at sync_status');

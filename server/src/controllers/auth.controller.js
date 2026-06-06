@@ -1,8 +1,8 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const User = require('../models/User');
-const { syncUser } = require('../jobs/sync');
-const { buildAndSaveProfile } = require('../services/skillEngine');
+const syncService = require('../jobs/sync');
+const skillEngineService = require('../services/skillEngine');
 
 function generateToken(userId, handle) {
   return jwt.sign(
@@ -27,7 +27,7 @@ async function signup(req, res) {
     });
   }
 
-  const normalizedHandle = handle.trim().toUpperCase();
+  const normalizedHandle = syncService.normalizeHandle(handle);
 
   try {
     const emailCheck = await User.findOne({ email });
@@ -51,10 +51,10 @@ async function signup(req, res) {
       userId = existing._id;
       console.log(`${normalizedHandle} already synced, skipping re-sync on signup`);
     } else {
-      const syncResult = await syncUser(normalizedHandle);
+      const syncResult = await syncService.syncUser(normalizedHandle);
       userId = syncResult.userId;
       currentRating = syncResult.currentRating;
-      await buildAndSaveProfile(userId);
+      await skillEngineService.buildAndSaveProfile(userId);
     }
 
     await User.updateOne(

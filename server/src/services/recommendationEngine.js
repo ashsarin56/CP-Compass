@@ -2,187 +2,194 @@ const Submission = require('../models/Submission');
 const SkillProfile = require('../models/SkillProfile');
 const User = require('../models/User');
 const axios = require('axios');
-const { saveRecommendationBatch } = require('./feedback');
+const feedbackService = require('./feedback');
 const { getEffectiveTags } = require('../config/tagRelevance');
+const BaseService = require('./BaseService');
 
-const CF_API_BASE = process.env.CF_API_BASE;
+class RecommendationService extends BaseService {
+  #problemsetCache;
+  #problemsetCachedAt;
 
-//caching ( in memory )
-let problemsetCache = null;
-let problemsetCachedAt = null;
-const CACHE_TTL_MS = 6 * 60 * 60 * 1000;
-
-async function fetchAndCacheProblems() {
-  const now = Date.now();
-
-  if (
-    problemsetCache &&
-    problemsetCachedAt &&
-    now - problemsetCachedAt < CACHE_TTL_MS
-  ) {
-    console.log('Using cached problemset');
-    return problemsetCache;
+  constructor() {
+    super();
+    this.#problemsetCache = null;
+    this.#problemsetCachedAt = null;
   }
 
-  const response = await axios.get(`${CF_API_BASE}/problemset.problems`, {
-    timeout: 15000
-  });
+  async #fetchAndCacheProblems() {
+    const now = Date.now();
 
-  if (response.data.status !== 'OK') {
-    throw new Error('Failed to fetch problemset from CF');
+    if (
+      this.#problemsetCache &&
+      this.#problemsetCachedAt &&
+      now - this.#problemsetCachedAt < this.cacheTTL
+    ) {
+      console.log('Using cached problemset');
+      return this.#problemsetCache;
+    }
+
+    const response = await axios.get(`${this.baseUrl}/problemset.problems`, {
+      timeout: 15000
+    });
+
+    if (response.data.status !== 'OK') {
+      throw new Error('Failed to fetch problemset from CF');
+    }
+
+    const problems = response.data.result.problems;
+    const stats = response.data.result.problemStatistics;
+
+    const statsMap = {};
+    for (const s of stats) {
+      statsMap[`${s.contestId}${s.index}`] = s.solvedCount;
+    }
+
+    this.#problemsetCache = { problems, statsMap };
+    this.#problemsetCachedAt = now;
+
+    console.log(`Fetched ${problems.length} problems from CF and cached`);
+    return this.#problemsetCache;
   }
 
-  const problems = response.data.result.problems;
-  const stats = response.data.result.problemStatistics;
+  #scoreProblem(problem, weakness, userSolvedIds, solvedCount) {
+    const { tagRating, tag } = weakness;
+    const effectiveTags = getEffectiveTags(problem.tags, problem.rating);
+    if (!effectiveTags.includes(tag)) return -1;
 
-  const statsMap = {};
-  for (const s of stats) {
-    statsMap[`${s.contestId}${s.index}`] = s.solvedCount;
+    const problemId = `${problem.contestId}${problem.index}`;
+    if (userSolvedIds.has(problemId)) return -1;
+
+    if (!problem.rating) return -1;
+
+    const targetMin = tagRating + 50;
+    const targetMax = tagRating + 150;
+    const withinZPD = problem.rating >= targetMin && problem.rating <= targetMax;
+    if (!withinZPD) return -1;
+
+    let score = 100;
+
+    if (problem.contestId) {
+      score += Math.min(problem.contestId / 1000, 30);
+    }
+
+    const solves = solvedCount || 0;
+    if (solves > 1000) score += 10;
+    if (solves > 5000) score += 5;
+
+    return score;
   }
 
-  problemsetCache = { problems, statsMap };
-  problemsetCachedAt = now;
+  #generateThinkingPrompts(problem) {
+    const prompts = [];
+    const rating = problem.rating || 0;
+    const tags = getEffectiveTags(problem.tags || [], rating);
 
-  console.log(`Fetched ${problems.length} problems from CF and cached`);
-  return problemsetCache;
-}
+    prompts.push(`What is the constraint on N? What time complexity does it allow?`);
 
-function scoreProblem(problem, weakness, userSolvedIds, solvedCount) {
-  const { tagRating, tag } = weakness;
-  const effectiveTags = getEffectiveTags(problem.tags, problem.rating);
-  if (!effectiveTags.includes(tag)) return -1;
+    if (tags.includes('dp')) {
+      prompts.push(`What is the state? What does dp[i] represent?`);
+    } else if (tags.includes('graphs') || tags.includes('dfs and similar')) {
+      prompts.push(`Is this directed or undirected? What traversal makes sense?`);
+    } else if (tags.includes('binary search')) {
+      prompts.push(`What are you binary searching on — a value or an answer?`);
+    } else if (tags.includes('greedy')) {
+      prompts.push(`What local choice leads to the global optimum? Can you prove it?`);
+    } else if (tags.includes('math') || tags.includes('number theory')) {
+      prompts.push(`Is there a mathematical pattern in small cases?`);
+    } else if (tags.includes('strings')) {
+      prompts.push(`What property of the string are you exploiting — prefix, suffix, frequency?`);
+    } else if (tags.includes('sortings')) {
+      prompts.push(`Does sorting the input expose a simpler structure to work with?`);
+    } else if (tags.includes('brute force')) {
+      prompts.push(`What is the brute force? Can you prune it or find the pattern it reveals?`);
+    } else {
+      prompts.push(`What structure in the input can you exploit?`);
+    }
 
-  const problemId = `${problem.contestId}${problem.index}`;
-  if (userSolvedIds.has(problemId)) return -1;
+    if (rating >= 1400) {
+      prompts.push(`What are the edge cases? Does your solution handle n=1, empty input, max constraints?`);
+    }
 
-  if (!problem.rating) return -1;
-
-  const targetMin = tagRating + 50;
-  const targetMax = tagRating + 150;
-  const withinZPD = problem.rating >= targetMin && problem.rating <= targetMax;
-  if (!withinZPD) return -1;
-
-  let score = 100;
-
-  if (problem.contestId) {
-    score += Math.min(problem.contestId / 1000, 30);
+    return prompts;
   }
 
-  const solves = solvedCount || 0;
-  if (solves > 1000) score += 10;
-  if (solves > 5000) score += 5;
+  async generateRecommendations(userId) {
+    const profile = await SkillProfile.findOne({ user_id: userId }).lean();
+    if (!profile) {
+      throw new Error('No skill profile found. Run computation first.');
+    }
 
-  return score;
-}
+    const user = await User.findById(userId).lean();
+    const weaknesses = profile.weakness_vector;
+    const globalEstimate = profile.global_estimate;
 
-function generateThinkingPrompts(problem) {
-  const prompts = [];
-  const rating = problem.rating || 0;
-  const tags = getEffectiveTags(problem.tags || [], rating);
+    if (!weaknesses || weaknesses.length === 0) {
+      throw new Error('No weaknesses detected. Profile may need more data.');
+    }
 
-  prompts.push(`What is the constraint on N? What time complexity does it allow?`);
+    const solvedIds = await Submission.distinct('problem_id', {
+      user_id: userId,
+      verdict: 'OK'
+    });
+    const userSolvedIds = new Set(solvedIds);
 
-  if (tags.includes('dp')) {
-    prompts.push(`What is the state? What does dp[i] represent?`);
-  } else if (tags.includes('graphs') || tags.includes('dfs and similar')) {
-    prompts.push(`Is this directed or undirected? What traversal makes sense?`);
-  } else if (tags.includes('binary search')) {
-    prompts.push(`What are you binary searching on — a value or an answer?`);
-  } else if (tags.includes('greedy')) {
-    prompts.push(`What local choice leads to the global optimum? Can you prove it?`);
-  } else if (tags.includes('math') || tags.includes('number theory')) {
-    prompts.push(`Is there a mathematical pattern in small cases?`);
-  } else if (tags.includes('strings')) {
-    prompts.push(`What property of the string are you exploiting — prefix, suffix, frequency?`);
-  } else if (tags.includes('sortings')) {
-    prompts.push(`Does sorting the input expose a simpler structure to work with?`);
-  } else if (tags.includes('brute force')) {
-    prompts.push(`What is the brute force? Can you prune it or find the pattern it reveals?`);
-  } else {
-    prompts.push(`What structure in the input can you exploit?`);
-  }
+    const { problems, statsMap } = await this.#fetchAndCacheProblems();
 
-  if (rating >= 1400) {
-    prompts.push(`What are the edge cases? Does your solution handle n=1, empty input, max constraints?`);
-  }
+    const recommendations = [];
+    const usedProblemIds = new Set();
+    const topWeaknesses = weaknesses.slice(0, 3);
 
-  return prompts;
-}
+    for (const weakness of topWeaknesses) {
+      let bestScore = -1;
+      let bestProblem = null;
 
-async function generateRecommendations(userId) {
-  const profile = await SkillProfile.findOne({ user_id: userId }).lean();
-  if (!profile) {
-    throw new Error('No skill profile found. Run computation first.');
-  }
+      for (const problem of problems) {
+        const problemId = `${problem.contestId}${problem.index}`;
+        if (usedProblemIds.has(problemId)) continue;
 
-  const user = await User.findById(userId).lean();
-  const weaknesses = profile.weakness_vector;
-  const globalEstimate = profile.global_estimate;
+        const solvedCount = statsMap[problemId] || 0;
+        const score = this.#scoreProblem(problem, weakness, userSolvedIds, solvedCount);
 
-  if (!weaknesses || weaknesses.length === 0) {
-    throw new Error('No weaknesses detected. Profile may need more data.');
-  }
-  const solvedIds = await Submission.distinct('problem_id', {
-    user_id: userId,
-    verdict: 'OK'
-  });
-  const userSolvedIds = new Set(solvedIds);
+        if (score > bestScore) {
+          bestScore = score;
+          bestProblem = problem;
+        }
+      }
 
-  const { problems, statsMap } = await fetchAndCacheProblems();
+      if (bestProblem) {
+        const problemId = `${bestProblem.contestId}${bestProblem.index}`;
+        usedProblemIds.add(problemId);
 
-  const recommendations = [];
-  const usedProblemIds = new Set();
-  const topWeaknesses = weaknesses.slice(0, 3);
+        const effectiveTags = getEffectiveTags(bestProblem.tags, bestProblem.rating);
 
-  for (const weakness of topWeaknesses) {
-    let bestScore = -1;
-    let bestProblem = null;
-
-    for (const problem of problems) {
-      const problemId = `${problem.contestId}${problem.index}`;
-      if (usedProblemIds.has(problemId)) continue;
-
-      const solvedCount = statsMap[problemId] || 0;
-      const score = scoreProblem(problem, weakness, userSolvedIds, solvedCount);
-
-      if (score > bestScore) {
-        bestScore = score;
-        bestProblem = problem;
+        recommendations.push({
+          problemId,
+          contestId: bestProblem.contestId,
+          index: bestProblem.index,
+          name: bestProblem.name,
+          rating: bestProblem.rating,
+          tags: bestProblem.tags,
+          effectiveTags,
+          targetWeakness: weakness.tag,
+          role: weakness.type === 'absolute' ? 'direct_fix' : 'stretch',
+          why: `Targets your ${weakness.tag} gap. Your current ${weakness.tag} level is ~${weakness.tagRating}, this problem is rated ${bestProblem.rating} — a reachable stretch.`,
+          thinkingPrompts: this.#generateThinkingPrompts(bestProblem),
+          url: `https://codeforces.com/problemset/problem/${bestProblem.contestId}/${bestProblem.index}`
+        });
       }
     }
 
-    if (bestProblem) {
-      const problemId = `${bestProblem.contestId}${bestProblem.index}`;
-      usedProblemIds.add(problemId);
+    await feedbackService.saveRecommendationBatch(userId, recommendations, new Date(Date.now() + 24 * 60 * 60 * 1000));
 
-      const effectiveTags = getEffectiveTags(bestProblem.tags, bestProblem.rating);
-
-      recommendations.push({
-        problemId,
-        contestId: bestProblem.contestId,
-        index: bestProblem.index,
-        name: bestProblem.name,
-        rating: bestProblem.rating,
-        tags: bestProblem.tags,
-        effectiveTags,
-        targetWeakness: weakness.tag,
-        role: weakness.type === 'absolute' ? 'direct_fix' : 'stretch',
-        why: `Targets your ${weakness.tag} gap. Your current ${weakness.tag} level is ~${weakness.tagRating}, this problem is rated ${bestProblem.rating} — a reachable stretch.`,
-        thinkingPrompts: generateThinkingPrompts(bestProblem),
-        url: `https://codeforces.com/problemset/problem/${bestProblem.contestId}/${bestProblem.index}`
-      });
-    }
+    return {
+      userId,
+      handle: user?.cf_handle,
+      globalEstimate,
+      batch: recommendations,
+      generatedAt: new Date().toISOString(),
+      validUntil: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+    };
   }
-  await saveRecommendationBatch(userId, recommendations, new Date(Date.now() + 24 * 60 * 60 * 1000));
-
-  return {
-    userId,
-    handle: user?.cf_handle,
-    globalEstimate,
-    batch: recommendations,
-    generatedAt: new Date().toISOString(),
-    validUntil: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
-  };
 }
 
-module.exports = { generateRecommendations };
+module.exports = new RecommendationService();

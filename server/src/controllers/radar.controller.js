@@ -1,18 +1,18 @@
 const User = require('../models/User');
 const SkillProfile = require('../models/SkillProfile');
-const { syncUser } = require('../jobs/sync');
-const { buildAndSaveProfile } = require('../services/skillEngine');
+const syncService = require('../jobs/sync');
+const skillEngineService = require('../services/skillEngine');
 
 async function getRadar(req, res) {
-  const handle = req.params.handle.toUpperCase();
+  const handle = syncService.normalizeHandle(req.params.handle);
 
   try {
     const user = await User.findOne({ cf_handle: handle });
 
     if (!user) {
-      const syncResult = await syncUser(handle);
+      await syncService.syncUser(handle);
       const newUser = await User.findOne({ cf_handle: handle });
-      const profile = await buildAndSaveProfile(newUser._id);
+      const profile = await skillEngineService.buildAndSaveProfile(newUser._id);
 
       return res.json({
         success: true,
@@ -31,7 +31,7 @@ async function getRadar(req, res) {
     const profile = await SkillProfile.findOne({ user_id: user._id }).lean();
 
     if (!profile) {
-      const computed = await buildAndSaveProfile(user._id);
+      const computed = await skillEngineService.buildAndSaveProfile(user._id);
       return res.json({
         success: true,
         data: {
