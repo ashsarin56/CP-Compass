@@ -37,7 +37,6 @@ export default function Radar({ handle, onAnalyze }) {
   const tagSkills = data.tagSkills || {}
   const weaknesses = data.weaknesses || []
 
-  // Only show medium/high confidence tags, sorted by rating
   const sortedTags = Object.entries(tagSkills)
     .filter(([, v]) => v.confidence !== 'low')
     .sort((a, b) => a[1].rating - b[1].rating)

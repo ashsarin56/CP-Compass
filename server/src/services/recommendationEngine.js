@@ -3,10 +3,11 @@ const SkillProfile = require('../models/SkillProfile');
 const User = require('../models/User');
 const axios = require('axios');
 const { saveRecommendationBatch } = require('./feedback');
+const { getEffectiveTags } = require('../config/tagRelevance');
 
 const CF_API_BASE = process.env.CF_API_BASE;
 
-// In-memory cache — fetched once per server restart, refreshed every 6hrs
+//caching ( in memory )
 let problemsetCache = null;
 let problemsetCachedAt = null;
 const CACHE_TTL_MS = 6 * 60 * 60 * 1000;
@@ -48,8 +49,8 @@ async function fetchAndCacheProblems() {
 
 function scoreProblem(problem, weakness, userSolvedIds, solvedCount) {
   const { tagRating, tag } = weakness;
-
-  if (!problem.tags.includes(tag)) return -1;
+  const effectiveTags = getEffectiveTags(problem.tags, problem.rating);
+  if (!effectiveTags.includes(tag)) return -1;
 
   const problemId = `${problem.contestId}${problem.index}`;
   if (userSolvedIds.has(problemId)) return -1;
@@ -77,7 +78,7 @@ function scoreProblem(problem, weakness, userSolvedIds, solvedCount) {
 function generateThinkingPrompts(problem) {
   const prompts = [];
   const rating = problem.rating || 0;
-  const tags = problem.tags || [];
+  const tags = getEffectiveTags(problem.tags || [], rating);
 
   prompts.push(`What is the constraint on N? What time complexity does it allow?`);
 
@@ -109,7 +110,6 @@ function generateThinkingPrompts(problem) {
 }
 
 async function generateRecommendations(userId) {
-  // Get skill profile with user handle
   const profile = await SkillProfile.findOne({ user_id: userId }).lean();
   if (!profile) {
     throw new Error('No skill profile found. Run computation first.');
@@ -122,8 +122,6 @@ async function generateRecommendations(userId) {
   if (!weaknesses || weaknesses.length === 0) {
     throw new Error('No weaknesses detected. Profile may need more data.');
   }
-
-  // Get all solved problem IDs
   const solvedIds = await Submission.distinct('problem_id', {
     user_id: userId,
     verdict: 'OK'
@@ -157,6 +155,8 @@ async function generateRecommendations(userId) {
       const problemId = `${bestProblem.contestId}${bestProblem.index}`;
       usedProblemIds.add(problemId);
 
+      const effectiveTags = getEffectiveTags(bestProblem.tags, bestProblem.rating);
+
       recommendations.push({
         problemId,
         contestId: bestProblem.contestId,
@@ -164,6 +164,7 @@ async function generateRecommendations(userId) {
         name: bestProblem.name,
         rating: bestProblem.rating,
         tags: bestProblem.tags,
+        effectiveTags,
         targetWeakness: weakness.tag,
         role: weakness.type === 'absolute' ? 'direct_fix' : 'stretch',
         why: `Targets your ${weakness.tag} gap. Your current ${weakness.tag} level is ~${weakness.tagRating}, this problem is rated ${bestProblem.rating} — a reachable stretch.`,
@@ -172,8 +173,6 @@ async function generateRecommendations(userId) {
       });
     }
   }
-
-  // Save batch to DB so feedback loop can match against it
   await saveRecommendationBatch(userId, recommendations, new Date(Date.now() + 24 * 60 * 60 * 1000));
 
   return {

@@ -5,7 +5,7 @@ export default function Home({ onAnalyzed, onGoToRadar }) {
   const [handle, setHandle] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [mode, setMode] = useState('signup') // 'signup' | 'login'
+  const [mode, setMode] = useState('signup')
   const [status, setStatus] = useState(null)
   const [message, setMessage] = useState('')
 

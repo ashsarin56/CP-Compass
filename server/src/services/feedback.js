@@ -16,7 +16,6 @@ async function processFeedback(userId, newSubmissions) {
 
   if (batches.length === 0) return;
 
-  //map of recommended problem_id -> batch info
   const recommendedProblems = {};
   for (const row of batches) {
     const batch = row.batch;
@@ -38,8 +37,6 @@ async function processFeedback(userId, newSubmissions) {
 
     if (!isRecommended) continue;
     if (sub.verdict !== 'OK') continue;
-
-    // Check if we already logged this
     const existing = await FeedbackEvent.findOne({
       user_id: userId,
       problem_id: problemId

@@ -1,5 +1,6 @@
 const Submission = require('../models/Submission');
 const SkillProfile = require('../models/SkillProfile');
+const { getEffectiveTags } = require('../config/tagRelevance');
 
 const RECENCY_HALF_LIFE_DAYS = 90;
 const MIN_SAMPLES_FOR_CONFIDENCE = 5;
@@ -33,8 +34,9 @@ async function computeSkillVector(userId) {
     const weight = recencyWeight(sub.submitted_at) *
                    contestMultiplier(sub.is_contest_submission);
     const rating = sub.problem_rating;
+    const effectiveTags = getEffectiveTags(sub.problem_tags, rating);
 
-    for (const tag of sub.problem_tags) {
+    for (const tag of effectiveTags) {
       if (!tagData[tag]) {
         tagData[tag] = { weightedSum: 0, totalWeight: 0, count: 0 };
       }
@@ -103,26 +105,28 @@ function detectWeaknesses(tagSkills, globalEstimate) {
   return weaknesses.sort((a, b) => b.gap - a.gap);
 }
 async function computeWARates(userId) {
-  const pipeline = [
-    { $match: { user_id: userId, problem_rating: { $ne: null } } },
-    { $unwind: '$problem_tags' },
-    { $group: {
-        _id: '$problem_tags',
-        wa_count: {
-          $sum: { $cond: [{ $eq: ['$verdict', 'WRONG_ANSWER'] }, 1, 0] }
-        },
-        total_count: { $sum: 1 }
-    }},
-    { $match: { total_count: { $gte: 5 } } }
-  ];
+  const submissions = await Submission.find({
+    user_id: userId,
+    problem_rating: { $ne: null }
+  }).select('problem_tags problem_rating verdict').lean();
 
-  const results = await Submission.aggregate(pipeline);
+  const tagCounts = {}; //tag → { wa: N, total: N }
+
+  for (const sub of submissions) {
+    const effectiveTags = getEffectiveTags(sub.problem_tags, sub.problem_rating);
+    for (const tag of effectiveTags) {
+      if (!tagCounts[tag]) tagCounts[tag] = { wa: 0, total: 0 };
+      tagCounts[tag].total += 1;
+      if (sub.verdict === 'WRONG_ANSWER') tagCounts[tag].wa += 1;
+    }
+  }
 
   const waRates = {};
-  for (const row of results) {
-    waRates[row._id] = {
-      waRate: parseFloat((row.wa_count / row.total_count).toFixed(2)),
-      totalAttempts: row.total_count
+  for (const [tag, counts] of Object.entries(tagCounts)) {
+    if (counts.total < 5) continue;
+    waRates[tag] = {
+      waRate: parseFloat((counts.wa / counts.total).toFixed(2)),
+      totalAttempts: counts.total
     };
   }
   return waRates;

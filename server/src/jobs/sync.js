@@ -54,15 +54,12 @@ async function syncUser(cfHandle) {
     if (bulkOps.length > 0) {
       const result = await Submission.bulkWrite(bulkOps, { ordered: false });
       inserted = result.upsertedCount + result.modifiedCount;
-
-      // Track newly inserted submissions for feedback processing
       if (result.upsertedIds) {
         const upsertedCfIds = new Set();
         for (const key of Object.keys(result.upsertedIds)) {
           upsertedCfIds.add(result.upsertedIds[key]);
         }
 
-        // Find the newly inserted OK submissions for feedback
         for (const sub of relevant) {
           if (sub.verdict === 'OK') {
             const problem = sub.problem;

@@ -9,7 +9,7 @@ function authHeaders() {
     'Content-Type': 'application/json',
     ...(token ? { Authorization: `Bearer ${token}` } : {})
   };
-}
+} 
 export async function registerUser(handle) {
   const res = await fetch(`${BASE}/register`, {
     method: 'POST',

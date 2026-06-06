@@ -1,5 +1,3 @@
-const express = require('express');
-const router = express.Router();
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const User = require('../models/User');
@@ -14,9 +12,7 @@ function generateToken(userId, handle) {
   );
 }
 
-// POST /auth/signup
-// Body: { handle, email, password }
-router.post('/signup', async (req, res) => {
+async function signup(req, res) {
   const { handle, email, password } = req.body;
 
   if (!handle || !email || !password) {
@@ -40,8 +36,6 @@ router.post('/signup', async (req, res) => {
     }
 
     const passwordHash = await bcrypt.hash(password, 12);
-
-    // Check if already synced recently
     const existing = await User.findOne({ cf_handle: normalizedHandle });
 
     let userId;
@@ -84,11 +78,9 @@ router.post('/signup', async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
-});
+}
 
-// POST /auth/login
-// Body: { email, password }
-router.post('/login', async (req, res) => {
+async function login(req, res) {
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -128,10 +120,9 @@ router.post('/login', async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
-});
+}
 
-// GET /auth/me — verify token + return current user
-router.get('/me', require('../middleware/auth'), async (req, res) => {
+async function me(req, res) {
   try {
     const user = await User.findById(req.user.userId)
       .select('_id cf_handle email createdAt last_synced_at');
@@ -144,6 +135,6 @@ router.get('/me', require('../middleware/auth'), async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
-});
+}
 
-module.exports = router;
+module.exports = { signup, login, me };

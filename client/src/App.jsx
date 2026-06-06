@@ -10,7 +10,6 @@ function getInitialState() {
   if (radarMatch) {
     return { view: 'radar', radarHandle: radarMatch[1].toUpperCase(), handle: null }
   }
-  // Check for existing token
   const token = localStorage.getItem('cp_compass_token')
   if (token) {
     return { view: 'loading', radarHandle: null, handle: null }
@@ -25,7 +24,6 @@ export default function App() {
   const [handle, setHandle] = useState(initial.handle)
   const [radarHandle, setRadarHandle] = useState(initial.radarHandle)
 
-  // verify token
   useState(() => {
     if (initial.view === 'loading') {
       getMe().then(result => {
