@@ -5,23 +5,36 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 const connectDB = require('./config/db');
+const { connectRedis, disconnectRedis } = require('./config/redis');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(cors({ origin: 'http://localhost:5173' }));
+app.use(cors({ origin: process.env.FRONTEND_BASE_URL }));
 app.use(express.json());
 
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-app.use('/auth', require('./routes/auth.routes'));
-app.use('/api', require('./routes/index'));
+async function boot() {
+  await Promise.all([connectDB(), connectRedis()]);
 
-connectDB().then(() => {
+  app.use('/auth', require('./routes/auth.routes'));
+  app.use('/api', require('./routes/index'));
+
   app.listen(PORT, () => {
     console.log(`CP Compass server running on port ${PORT}`);
   });
-});
+}
+
+boot();
+
+const shutdown = async () => {
+  console.log('Shutting down...');
+  await disconnectRedis();
+  process.exit(0);
+};
+process.on('SIGTERM', shutdown);
+process.on('SIGINT', shutdown);
 
 module.exports = app;

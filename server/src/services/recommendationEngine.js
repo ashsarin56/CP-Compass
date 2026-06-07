@@ -5,27 +5,19 @@ const axios = require('axios');
 const feedbackService = require('./feedback');
 const { getEffectiveTags } = require('../config/tagRelevance');
 const BaseService = require('./BaseService');
+const { getCache, setCache, CACHE_TTL } = require('../config/redis');
 
 class RecommendationService extends BaseService {
-  #problemsetCache;
-  #problemsetCachedAt;
-
   constructor() {
     super();
-    this.#problemsetCache = null;
-    this.#problemsetCachedAt = null;
   }
 
   async #fetchAndCacheProblems() {
-    const now = Date.now();
-
-    if (
-      this.#problemsetCache &&
-      this.#problemsetCachedAt &&
-      now - this.#problemsetCachedAt < this.cacheTTL
-    ) {
-      console.log('Using cached problemset');
-      return this.#problemsetCache;
+    const cacheKey = 'problemset:all';
+    const cached = await getCache(cacheKey);
+    if (cached) {
+      console.log('Using cached problemset (Redis)');
+      return cached;
     }
 
     const response = await axios.get(`${this.baseUrl}/problemset.problems`, {
@@ -44,11 +36,10 @@ class RecommendationService extends BaseService {
       statsMap[`${s.contestId}${s.index}`] = s.solvedCount;
     }
 
-    this.#problemsetCache = { problems, statsMap };
-    this.#problemsetCachedAt = now;
-
-    console.log(`Fetched ${problems.length} problems from CF and cached`);
-    return this.#problemsetCache;
+    const data = { problems, statsMap };
+    await setCache(cacheKey, data, CACHE_TTL.PROBLEMSET);
+    console.log(`Fetched ${problems.length} problems from CF and cached in Redis`);
+    return data;
   }
 
   #scoreProblem(problem, weakness, userSolvedIds, solvedCount) {
@@ -114,6 +105,13 @@ class RecommendationService extends BaseService {
   }
 
   async generateRecommendations(userId) {
+    const recoCacheKey = `recommendations:${userId}`;
+    const cachedReco = await getCache(recoCacheKey);
+    if (cachedReco) {
+      console.log(`Cache HIT: ${recoCacheKey}`);
+      return cachedReco;
+    }
+
     const profile = await SkillProfile.findOne({ user_id: userId }).lean();
     if (!profile) {
       throw new Error('No skill profile found. Run computation first.');
@@ -181,7 +179,7 @@ class RecommendationService extends BaseService {
 
     await feedbackService.saveRecommendationBatch(userId, recommendations, new Date(Date.now() + 24 * 60 * 60 * 1000));
 
-    return {
+    const result = {
       userId,
       handle: user?.cf_handle,
       globalEstimate,
@@ -189,6 +187,11 @@ class RecommendationService extends BaseService {
       generatedAt: new Date().toISOString(),
       validUntil: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
     };
+
+    await setCache(recoCacheKey, result, CACHE_TTL.RECOMMENDATION);
+    console.log(`Cache MISS → stored: ${recoCacheKey}`);
+
+    return result;
   }
 }
 
