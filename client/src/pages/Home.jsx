@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { signup, login, saveToken } from '../api'
+import { signup, login, saveToken, getAuthBaseUrl } from '../api'
+import './Home.css'
 
 export default function Home({ onAnalyzed, onGoToRadar }) {
   const [handle, setHandle] = useState('')
@@ -36,29 +37,70 @@ export default function Home({ onAnalyzed, onGoToRadar }) {
   }
 
   return (
-    <div style={styles.container}>
-      <div style={styles.hero}>
-        <h1 style={styles.title}>CP Compass</h1>
-        <p style={styles.subtitle}>
+    <div className="home-container">
+      {/* Animated grid background */}
+      <div className="home-grid-bg" />
+
+      <div className="home-card">
+        {/* Title */}
+        <h1 className="home-title">CP Compass</h1>
+
+        {/* Subtitle */}
+        <p className="home-subtitle">
           Precise diagnosis of your competitive programming weaknesses.
           Not a sheet. Not an editorial. A training engine.
         </p>
 
-        <div style={styles.tabs}>
-          <button
-            style={{ ...styles.tab, ...(mode === 'signup' ? styles.tabActive : {}) }}
-            onClick={() => setMode('signup')}
-          >Sign Up</button>
-          <button
-            style={{ ...styles.tab, ...(mode === 'login' ? styles.tabActive : {}) }}
-            onClick={() => setMode('login')}
-          >Log In</button>
+        {/* Feature pills */}
+        <div className="home-pills">
+          <span className="home-pill">⚡ Skill Analysis</span>
+          <span className="home-pill">🎯 Smart Recommendations</span>
+          <span className="home-pill">📊 Progress Tracking</span>
         </div>
 
-        <form onSubmit={handleSubmit} style={styles.form}>
+        <button
+          className="home-google-btn"
+          type="button"
+          onClick={() => { window.location.href = getAuthBaseUrl() + '/auth/google' }}
+        >
+          <svg className="home-google-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1Z" fill="#4285F4"/>
+            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23Z" fill="#34A853"/>
+            <path d="M5.84 14.09a6.97 6.97 0 0 1 0-4.17V7.07H2.18a11.01 11.01 0 0 0 0 9.86l3.66-2.84Z" fill="#FBBC05"/>
+            <path d="M12 4.75c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 1.09 14.97 0 12 0 7.7 0 3.99 2.47 2.18 6.07l3.66 2.84c.87-2.6 3.3-4.16 6.16-4.16Z" fill="#EA4335"/>
+          </svg>
+          Continue with Google
+        </button>
+
+        <div className="home-divider-row">
+          <span className="home-divider-line" />
+          <span className="home-divider-text">or</span>
+          <span className="home-divider-line" />
+        </div>
+
+        {/* Auth tabs */}
+        <div className="home-tabs">
+          <button
+            className={`home-tab${mode === 'signup' ? ' home-tab--active' : ''}`}
+            onClick={() => setMode('signup')}
+            type="button"
+          >
+            Sign Up
+          </button>
+          <button
+            className={`home-tab${mode === 'login' ? ' home-tab--active' : ''}`}
+            onClick={() => setMode('login')}
+            type="button"
+          >
+            Log In
+          </button>
+        </div>
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="home-form">
           {mode === 'signup' && (
             <input
-              style={styles.input}
+              className="home-input"
               type="text"
               placeholder="Codeforces handle"
               value={handle}
@@ -67,7 +109,7 @@ export default function Home({ onAnalyzed, onGoToRadar }) {
             />
           )}
           <input
-            style={styles.input}
+            className="home-input"
             type="email"
             placeholder="Email"
             value={email}
@@ -75,7 +117,7 @@ export default function Home({ onAnalyzed, onGoToRadar }) {
             disabled={status === 'loading'}
           />
           <input
-            style={styles.input}
+            className="home-input"
             type="password"
             placeholder="Password"
             value={password}
@@ -83,48 +125,42 @@ export default function Home({ onAnalyzed, onGoToRadar }) {
             disabled={status === 'loading'}
           />
           <button
-            style={{ ...styles.button, opacity: status === 'loading' ? 0.6 : 1 }}
+            className="home-submit"
             type="submit"
             disabled={status === 'loading'}
           >
-            {status === 'loading'
-              ? (mode === 'signup' ? 'Setting up...' : 'Logging in...')
-              : (mode === 'signup' ? 'Create Account' : 'Log In')}
+            <span className="home-submit-content">
+              {status === 'loading' && <span className="home-spinner" />}
+              {status === 'loading'
+                ? (mode === 'signup' ? 'Setting up...' : 'Logging in...')
+                : (mode === 'signup' ? 'Create Account' : 'Log In')}
+            </span>
           </button>
         </form>
 
+        {/* Status message */}
         {message && (
-          <p style={{ ...styles.message, color: status === 'error' ? '#ef4444' : '#22c55e' }}>
+          <p className={`home-message ${status === 'error' ? 'home-message--error' : 'home-message--success'}`}>
             {message}
           </p>
         )}
 
-        <p style={styles.radarLink}>
+        {/* Radar only link */}
+        <p className="home-radar">
           Just want to see your skill map?{' '}
           <button
-            style={styles.radarLinkBtn}
+            className="home-radar-btn"
             onClick={() => { if (handle.trim()) onGoToRadar(handle.trim()) }}
+            type="button"
           >
             View Radar Only →
           </button>
         </p>
+
+        {/* Footer */}
+        <hr className="home-divider" />
+        <p className="home-footer">Built for competitive programmers</p>
       </div>
     </div>
   )
-}
-
-const styles = {
-  container: { minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' },
-  hero: { maxWidth: '420px', width: '100%', textAlign: 'center' },
-  title: { fontSize: '3rem', fontWeight: '800', letterSpacing: '-0.02em', marginBottom: '1rem', background: 'linear-gradient(135deg, #4a9eed, #8b5cf6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' },
-  subtitle: { fontSize: '1rem', color: '#a0a0a0', lineHeight: '1.6', marginBottom: '2rem' },
-  tabs: { display: 'flex', background: '#1a1a1a', borderRadius: '8px', padding: '4px', marginBottom: '1.5rem' },
-  tab: { flex: 1, padding: '0.5rem', background: 'none', border: 'none', color: '#555', fontSize: '0.9rem', borderRadius: '6px', cursor: 'pointer' },
-  tabActive: { background: '#2a2a2a', color: '#e5e5e5' },
-  form: { display: 'flex', flexDirection: 'column', gap: '0.75rem' },
-  input: { padding: '0.875rem 1rem', fontSize: '1rem', background: '#1a1a1a', border: '1px solid #333', borderRadius: '8px', color: '#e5e5e5', outline: 'none' },
-  button: { padding: '0.875rem', fontSize: '1rem', fontWeight: '600', background: 'linear-gradient(135deg, #4a9eed, #8b5cf6)', border: 'none', borderRadius: '8px', color: '#fff', cursor: 'pointer' },
-  message: { marginTop: '1rem', fontSize: '0.9rem' },
-  radarLink: { marginTop: '1.5rem', fontSize: '0.85rem', color: '#555' },
-  radarLinkBtn: { background: 'none', border: 'none', color: '#4a9eed', fontSize: '0.85rem', cursor: 'pointer', textDecoration: 'underline' }
 }

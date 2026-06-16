@@ -22,6 +22,8 @@
     "express-validator": "^7.3.2",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.6.2",
+    "passport": "^0.7.0",
+    "passport-google-oauth20": "^2.0.0",
     "rate-limit-redis": "^5.0.0",
     "redis": "^5.12.1"
   },

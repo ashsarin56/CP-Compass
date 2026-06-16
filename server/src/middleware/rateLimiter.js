@@ -36,7 +36,7 @@ function createLimiter({ windowMs, max, prefix, keyGenerator }) {
 }
 const authStrict = createLimiter({
   windowMs: 15 * 60 * 1000,
-  max: 10,
+  max: 20,
   prefix: 'auth-strict',
   keyGenerator: (req) => {
     const email = req.body?.email || '';
@@ -47,27 +47,27 @@ const authStrict = createLimiter({
 
 const authMe = createLimiter({
   windowMs: 60 * 1000,
-  max: 30,
+  max: 60,
   prefix: 'auth-me'
 });
 
 
 const apiGeneral = createLimiter({
   windowMs: 60 * 1000,
-  max: 60,
+  max: 120,
   prefix: 'api-general'
 });
 
 
 const apiWrite = createLimiter({
   windowMs: 15 * 60 * 1000,
-  max: 10,
+  max: 20,
   prefix: 'api-write'
 });
 
 const recommendation = createLimiter({
   windowMs: 15 * 60 * 1000,
-  max: 5,
+  max: 15,
   prefix: 'api-reco'
 });
 

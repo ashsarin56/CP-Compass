@@ -1,0 +1,488 @@
+/* ===== Radar Page — Premium Shareable Skill Card ===== */
+
+/* --- Layout --- */
+.radar-page {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 3rem 1.5rem 2rem;
+  min-height: 100vh;
+}
+
+/* --- Loading State --- */
+.radar-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  gap: 1rem;
+}
+
+.radar-loading .spinner {
+  width: 44px;
+  height: 44px;
+  border-width: 3px;
+}
+
+.radar-loading-text {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  animation: pulse 1.5s ease infinite;
+}
+
+.radar-loading-subtext {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  letter-spacing: 0.01em;
+}
+
+/* --- Error State --- */
+.radar-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  gap: 0.75rem;
+}
+
+.radar-error-icon {
+  font-size: 2rem;
+  opacity: 0.7;
+}
+
+.radar-error-text {
+  color: var(--color-danger);
+  font-size: 1rem;
+  font-weight: 500;
+  text-align: center;
+  max-width: 400px;
+  line-height: 1.5;
+}
+
+/* --- Header --- */
+.radar-header {
+  margin-bottom: 2rem;
+  animation: fadeInUp 0.5s ease forwards;
+}
+
+.radar-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.radar-logo {
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.radar-badge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  background: rgba(99, 102, 241, 0.1);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: var(--radius-full);
+  padding: 0.25rem 0.75rem;
+  color: var(--accent-indigo);
+}
+
+.radar-handle {
+  font-size: 2.5rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--text-primary);
+  line-height: 1.15;
+  margin-bottom: 0.75rem;
+}
+
+.radar-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.radar-meta {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.radar-meta-value {
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.radar-meta-value--indigo {
+  font-weight: 700;
+  color: var(--accent-indigo);
+}
+
+/* --- Weakness Callout --- */
+.radar-weakness-callout {
+  background: rgba(239, 68, 68, 0.04);
+  border: 1px solid rgba(239, 68, 68, 0.12);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.75rem;
+  animation: fadeInUp 0.5s ease 0.1s forwards;
+  opacity: 0;
+}
+
+.radar-weakness-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-danger);
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.radar-weakness-label::before {
+  content: '⚠';
+  font-size: 0.8rem;
+}
+
+.radar-weakness-pills {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.radar-weakness-pill {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.15);
+  border-radius: var(--radius-sm);
+  padding: 0.4rem 0.75rem;
+  transition: var(--transition-fast);
+}
+
+.radar-weakness-pill:hover {
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.25);
+}
+
+.radar-weakness-pill-tag {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.radar-weakness-pill-rating {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--color-danger);
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- Skill Map Card (Glassmorphic) --- */
+.radar-skillmap-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 1.75rem;
+  margin-bottom: 1.75rem;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: var(--shadow-card);
+  animation: fadeInUp 0.5s ease 0.2s forwards;
+  opacity: 0;
+}
+
+.radar-skillmap-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  margin-bottom: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.radar-skillmap-title::before {
+  content: '';
+  display: inline-block;
+  width: 3px;
+  height: 14px;
+  background: var(--gradient-primary);
+  border-radius: 2px;
+}
+
+/* --- Tag Rows --- */
+.radar-tag-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.radar-tag-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.radar-tag-name {
+  width: 140px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  text-align: right;
+  flex-shrink: 0;
+  color: var(--text-secondary);
+  transition: var(--transition-fast);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.radar-tag-name--weak {
+  color: var(--color-danger);
+}
+
+.radar-bar-track {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 5px;
+  height: 12px;
+  position: relative;
+  overflow: visible;
+}
+
+.radar-bar-fill {
+  height: 100%;
+  border-radius: 5px;
+  animation: barGrow 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  position: relative;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.15);
+}
+
+.radar-bar-fill--green {
+  background: var(--gradient-success);
+}
+
+.radar-bar-fill--red {
+  background: var(--gradient-danger);
+}
+
+.radar-global-marker {
+  position: absolute;
+  top: -4px;
+  width: 2px;
+  height: 20px;
+  background: var(--accent-cyan);
+  border-radius: 1px;
+  opacity: 0.7;
+  z-index: 2;
+  transition: var(--transition-default);
+}
+
+.radar-global-marker::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -2px;
+  width: 6px;
+  height: 6px;
+  background: var(--accent-cyan);
+  border-radius: 50%;
+  opacity: 0.4;
+}
+
+.radar-tag-rating {
+  width: 42px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+}
+
+.radar-tag-rating--weak {
+  color: var(--color-danger);
+}
+
+.radar-legend {
+  font-size: 0.73rem;
+  color: var(--text-muted);
+  margin-top: 1rem;
+  text-align: right;
+  opacity: 0.7;
+}
+
+.radar-legend-marker {
+  color: var(--accent-cyan);
+  font-weight: 700;
+}
+
+/* --- CTA Section --- */
+.radar-cta {
+  position: relative;
+  border-radius: var(--radius-lg);
+  padding: 2px;
+  margin-bottom: 1.75rem;
+  background: linear-gradient(135deg, var(--accent-indigo), var(--accent-violet), var(--accent-cyan));
+  background-size: 200% 200%;
+  animation: fadeInUp 0.5s ease 0.3s forwards, gradientShift 6s ease infinite;
+  opacity: 0;
+}
+
+.radar-cta-inner {
+  background: var(--bg-secondary);
+  border-radius: calc(var(--radius-lg) - 2px);
+  padding: 2rem;
+  text-align: center;
+}
+
+.radar-cta-text {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 1.25rem;
+  line-height: 1.4;
+}
+
+.radar-cta-button {
+  display: inline-block;
+  background: var(--gradient-primary);
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 0.85rem 2.25rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+  transition: var(--transition-default);
+  margin-bottom: 0.85rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.radar-cta-button::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.15) 0%,
+    rgba(255, 255, 255, 0) 50%
+  );
+  opacity: 0;
+  transition: var(--transition-default);
+}
+
+.radar-cta-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(99, 102, 241, 0.35);
+}
+
+.radar-cta-button:hover::after {
+  opacity: 1;
+}
+
+.radar-cta-button:active {
+  transform: translateY(0);
+}
+
+.radar-cta-subtext {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* --- Footer --- */
+.radar-footer {
+  font-size: 0.75rem;
+  color: var(--text-faint);
+  text-align: center;
+  padding-top: 0.5rem;
+  animation: fadeInUp 0.5s ease 0.4s forwards;
+  opacity: 0;
+}
+
+/* --- Responsive --- */
+@media (max-width: 640px) {
+  .radar-page {
+    padding: 2rem 1rem 1.5rem;
+  }
+
+  .radar-handle {
+    font-size: 1.85rem;
+  }
+
+  .radar-meta-row {
+    flex-direction: column;
+    gap: 0.4rem;
+    align-items: flex-start;
+  }
+
+  .radar-tag-name {
+    width: 100px;
+    font-size: 0.75rem;
+  }
+
+  .radar-bar-track {
+    height: 10px;
+  }
+
+  .radar-tag-rating {
+    width: 36px;
+    font-size: 0.75rem;
+  }
+
+  .radar-skillmap-card {
+    padding: 1.25rem;
+  }
+
+  .radar-cta-inner {
+    padding: 1.5rem;
+  }
+
+  .radar-cta-text {
+    font-size: 1rem;
+  }
+
+  .radar-cta-button {
+    padding: 0.75rem 1.75rem;
+    font-size: 0.95rem;
+    width: 100%;
+  }
+
+  .radar-weakness-callout {
+    padding: 1rem 1.15rem;
+  }
+
+  .radar-weakness-pills {
+    gap: 0.4rem;
+  }
+}
+
+@media (max-width: 380px) {
+  .radar-tag-name {
+    width: 80px;
+    font-size: 0.7rem;
+  }
+
+  .radar-handle {
+    font-size: 1.5rem;
+  }
+
+  .radar-global-marker {
+    display: none;
+  }
+}

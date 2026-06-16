@@ -3,6 +3,8 @@ const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 const syncService = require('../jobs/sync');
 const skillEngineService = require('../services/skillEngine');
+const catchAsync = require('../utils/catchAsync');
+const AppError = require('../utils/AppError');
 
 function generateToken(userId, handle) {
   return jwt.sign(
@@ -12,7 +14,7 @@ function generateToken(userId, handle) {
   );
 }
 
-async function signup(req, res) {
+const signup = catchAsync(async (req, res) => {
   const { handle, email, password } = req.body;
 
   if (!handle || !email || !password) {
@@ -29,112 +31,98 @@ async function signup(req, res) {
 
   const normalizedHandle = syncService.normalizeHandle(handle);
 
-  try {
-    const emailCheck = await User.findOne({ email });
-    if (emailCheck) {
-      return res.status(409).json({ error: 'Email already registered' });
-    }
-
-    const passwordHash = await bcrypt.hash(password, 12);
-    const existing = await User.findOne({ cf_handle: normalizedHandle });
-
-    let userId;
-    let currentRating = 0;
-
-    const sixHoursAgo = new Date(Date.now() - 6 * 60 * 60 * 1000);
-    const alreadySynced = existing &&
-      existing.sync_status === 'complete' &&
-      existing.last_synced_at &&
-      new Date(existing.last_synced_at) > sixHoursAgo;
-
-    if (alreadySynced) {
-      userId = existing._id;
-      console.log(`${normalizedHandle} already synced, skipping re-sync on signup`);
-    } else {
-      const syncResult = await syncService.syncUser(normalizedHandle);
-      userId = syncResult.userId;
-      currentRating = syncResult.currentRating;
-      await skillEngineService.buildAndSaveProfile(userId);
-    }
-
-    await User.updateOne(
-      { _id: userId },
-      { email, password_hash: passwordHash }
-    );
-
-    const token = generateToken(userId, normalizedHandle);
-
-    res.status(201).json({
-      success: true,
-      token,
-      user: {
-        id: userId,
-        handle: normalizedHandle,
-        email,
-        currentRating
-      }
-    });
-
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+  const emailCheck = await User.findOne({ email });
+  if (emailCheck) {
+    return res.status(409).json({ error: 'Email already registered' });
   }
-}
 
-async function login(req, res) {
+  const passwordHash = await bcrypt.hash(password, 12);
+  const existing = await User.findOne({ cf_handle: normalizedHandle });
+
+  let userId;
+  let currentRating = 0;
+
+  const sixHoursAgo = new Date(Date.now() - 6 * 60 * 60 * 1000);
+  const alreadySynced = existing &&
+    existing.sync_status === 'complete' &&
+    existing.last_synced_at &&
+    new Date(existing.last_synced_at) > sixHoursAgo;
+
+  if (alreadySynced) {
+    userId = existing._id;
+    console.log(`${normalizedHandle} already synced, skipping re-sync on signup`);
+  } else {
+    const syncResult = await syncService.syncUser(normalizedHandle);
+    userId = syncResult.userId;
+    currentRating = syncResult.currentRating;
+    await skillEngineService.buildAndSaveProfile(userId);
+  }
+
+  await User.updateOne(
+    { _id: userId },
+    { email, password_hash: passwordHash }
+  );
+
+  const token = generateToken(userId, normalizedHandle);
+
+  res.status(201).json({
+    success: true,
+    token,
+    user: {
+      id: userId,
+      handle: normalizedHandle,
+      email,
+      currentRating
+    }
+  });
+});
+
+const login = catchAsync(async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
     return res.status(400).json({ error: 'email and password are required' });
   }
 
-  try {
-    const user = await User.findOne({ email });
+  const user = await User.findOne({ email });
 
-    if (!user) {
-      return res.status(401).json({ error: 'Invalid email or password' });
-    }
+  if (!user) {
+    return res.status(401).json({ error: 'Invalid email or password' });
+  }
 
-    if (!user.password_hash) {
-      return res.status(401).json({
-        error: 'This account was created without a password. Use Google login.'
-      });
-    }
-
-    const valid = await bcrypt.compare(password, user.password_hash);
-    if (!valid) {
-      return res.status(401).json({ error: 'Invalid email or password' });
-    }
-
-    const token = generateToken(user._id, user.cf_handle);
-
-    res.json({
-      success: true,
-      token,
-      user: {
-        id: user._id,
-        handle: user.cf_handle,
-        email: user.email
-      }
+  if (!user.password_hash) {
+    return res.status(401).json({
+      error: 'This account was created without a password. Use Google login.'
     });
-
-  } catch (err) {
-    res.status(500).json({ error: err.message });
   }
-}
 
-async function me(req, res) {
-  try {
-    const user = await User.findById(req.user.userId)
-      .select('_id cf_handle email createdAt last_synced_at');
+  const valid = await bcrypt.compare(password, user.password_hash);
+  if (!valid) {
+    return res.status(401).json({ error: 'Invalid email or password' });
+  }
 
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+  const token = generateToken(user._id, user.cf_handle);
+
+  res.json({
+    success: true,
+    token,
+    user: {
+      id: user._id,
+      handle: user.cf_handle,
+      email: user.email
     }
+  });
+});
 
-    res.json({ success: true, user });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+const me = catchAsync(async (req, res) => {
+  const user = await User.findById(req.user.userId)
+    .select('_id cf_handle email createdAt last_synced_at');
+
+  if (!user) {
+    throw new AppError('User not found', 404);
   }
-}
+
+  res.json({ success: true, user });
+});
 
 module.exports = { signup, login, me };
