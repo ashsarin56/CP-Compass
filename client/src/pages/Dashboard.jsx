@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { getProfile, getRecommendations } from '../api'
+import './Dashboard.css'
 
 export default function Dashboard({ handle, onBack }) {
   const [profile, setProfile] = useState(null)
@@ -20,8 +21,9 @@ export default function Dashboard({ handle, onBack }) {
   }, [handle])
 
   if (loading) return (
-    <div style={styles.center}>
-      <p style={{ color: '#a0a0a0' }}>Loading your profile...</p>
+    <div className="dash-loading">
+      <div className="spinner" />
+      <p className="dash-loading-text">Loading your profile...</p>
     </div>
   )
 
@@ -34,154 +36,159 @@ export default function Dashboard({ handle, onBack }) {
     .sort((a, b) => a[1].rating - b[1].rating)
 
   return (
-    <div style={styles.container}>
-      <div style={styles.header}>
-        <div style={styles.buttonGroup}>
-          <button onClick={onBack} style={styles.backBtn}>← Back</button>
+    <div>
+      <nav className="dash-nav">
+        <span className="dash-nav-logo">CP Compass</span>
+        <div className="dash-nav-right">
+          <span className="dash-nav-handle">{handle}</span>
           <button
-            onClick={() => {
-              window.open(`/radar/${handle}`, '_blank')
-            }}
-            style={{
-              ...styles.backBtn,
-              background: 'linear-gradient(135deg, #4a9eed22, #8b5cf622)',
-              border: '1px solid #4a9eed44',
-              color: '#4a9eed'
-            }}
+            className="dash-nav-btn dash-nav-btn--share"
+            onClick={() => window.open(`/radar/${handle}`, '_blank')}
           >
             Share Radar ↗
           </button>
+          <button
+            className="dash-nav-btn dash-nav-btn--logout"
+            onClick={onBack}
+          >
+            Log Out
+          </button>
         </div>
-        <div>
-          <h2 style={styles.handle}>{handle}</h2>
-          <p style={styles.globalEst}>
-            Global estimate:{' '}
-            <strong style={{ color: '#4a9eed' }}>
+      </nav>
+
+      <div className="dash-container">
+        <div className="dash-stats">
+          <div className="dash-stat-card">
+            <span className="dash-stat-value dash-stat-value--indigo">
               {profile?.global_estimate}
-            </strong>
-          </p>
+            </span>
+            <span className="dash-stat-label">Global Estimate</span>
+          </div>
+          <div className="dash-stat-card">
+            <span className="dash-stat-value dash-stat-value--danger">
+              {weaknesses.length}
+            </span>
+            <span className="dash-stat-label">Weaknesses</span>
+          </div>
+          <div className="dash-stat-card">
+            <span className="dash-stat-value">
+              {sortedTags.length}
+            </span>
+            <span className="dash-stat-label">Tags Tracked</span>
+          </div>
         </div>
-      </div>
 
-      <div style={styles.grid}>
-        <section style={styles.card}>
-          <h3 style={styles.cardTitle}>Your Weaknesses</h3>
-          {weaknesses.length === 0 ? (
-            <p style={styles.muted}>No clear weaknesses detected yet.</p>
-          ) : (
-            weaknesses.map(w => (
-              <div key={w.tag} style={styles.weaknessItem}>
-                <div style={styles.weaknessTop}>
-                  <span style={styles.tag}>{w.tag}</span>
-                  <span style={styles.weaknessRating}>{w.tagRating}</span>
-                </div>
-                <p style={styles.explanation}>{w.explanation}</p>
-                {w.waRate && (
-                  <p style={styles.waRate}>
-                    WA rate: {Math.round(w.waRate * 100)}%
-                  </p>
-                )}
+        <div className="dash-grid">
+          <section className="dash-card">
+            <h3 className="dash-card-title">
+              <span className="dash-card-title-icon">⚠</span>
+              Weaknesses
+              <span className="dash-card-count">{weaknesses.length}</span>
+            </h3>
+            {weaknesses.length === 0 ? (
+              <p className="dash-weakness-empty">No clear weaknesses detected yet.</p>
+            ) : (
+              <div className="dash-weakness-list">
+                {weaknesses.map(w => (
+                  <div key={w.tag} className="dash-weakness-item">
+                    <div className="dash-weakness-top">
+                      <span className="dash-weakness-tag">{w.tag}</span>
+                      <span className="dash-weakness-rating">{w.tagRating}</span>
+                    </div>
+                    <p className="dash-weakness-explanation">{w.explanation}</p>
+                    {w.waRate && (
+                      <div className="dash-wa-bar-wrap">
+                        <div className="dash-wa-label">
+                          <span className="dash-wa-label-text">WA Rate</span>
+                          <span className="dash-wa-label-value">
+                            {Math.round(w.waRate * 100)}%
+                          </span>
+                        </div>
+                        <div className="dash-wa-track">
+                          <div
+                            className="dash-wa-fill"
+                            style={{ width: `${Math.round(w.waRate * 100)}%` }}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
-            ))
-          )}
-        </section>
+            )}
+          </section>
 
-        <section style={styles.card}>
-          <h3 style={styles.cardTitle}>Tag Skill Map</h3>
-          <div style={styles.tagList}>
-            {sortedTags.map(([tag, data]) => (
-              <div key={tag} style={styles.tagRow}>
-                <span style={styles.tagName}>{tag}</span>
-                <div style={styles.barContainer}>
-                  <div style={{
-                    ...styles.bar,
-                    width: `${Math.min((data.rating / 2000) * 100, 100)}%`,
-                    background: data.rating < profile.global_estimate
-                      ? '#ef4444'
-                      : '#22c55e'
-                  }} />
+          <section className="dash-card">
+            <h3 className="dash-card-title">
+              <span className="dash-card-title-icon">📊</span>
+              Tag Skill Map
+              <span className="dash-card-count">{sortedTags.length}</span>
+            </h3>
+            <div className="dash-tagmap">
+              {sortedTags.map(([tag, data]) => (
+                <div key={tag} className="dash-tag-row">
+                  <span className="dash-tag-name">{tag}</span>
+                  <div className="dash-tag-bar-wrap">
+                    <div
+                      className={
+                        'dash-tag-bar' +
+                        (data.rating < profile.global_estimate
+                          ? ' dash-tag-bar--below'
+                          : ' dash-tag-bar--above')
+                      }
+                      style={{
+                        width: `${Math.min((data.rating / 2000) * 100, 100)}%`
+                      }}
+                    />
+                  </div>
+                  <span className="dash-tag-rating">{data.rating}</span>
                 </div>
-                <span style={styles.tagRating}>{data.rating}</span>
+              ))}
+            </div>
+          </section>
+        </div>
+
+        <section className="dash-card dash-training">
+          <h3 className="dash-card-title">
+            <span className="dash-card-title-icon">🎯</span>
+            Your Problems for Today
+            <span className="dash-card-count">{batch.length}</span>
+          </h3>
+          <div className="dash-rec-grid">
+            {batch.map(problem => (
+              <div key={problem.problemId} className="dash-rec-card">
+                <div className="dash-rec-top">
+                  <a
+                    href={problem.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="dash-rec-link"
+                  >
+                    {problem.name}
+                  </a>
+                  <span className="dash-rec-rating">⚡ {problem.rating}</span>
+                </div>
+
+                <p className="dash-rec-why">{problem.why}</p>
+
+                <div className="dash-rec-prompts">
+                  <p className="dash-rec-prompts-title">Think before coding</p>
+                  {problem.thinkingPrompts.map((prompt, i) => (
+                    <p key={i} className="dash-rec-prompt">{prompt}</p>
+                  ))}
+                </div>
+
+                <div className="dash-rec-footer">
+                  <span className="dash-rec-target">
+                    targets: {problem.targetWeakness}
+                  </span>
+                  <span className="dash-rec-role">{problem.role}</span>
+                </div>
               </div>
             ))}
           </div>
         </section>
       </div>
-
-      <section style={{ ...styles.card, marginTop: '1.5rem' }}>
-        <h3 style={styles.cardTitle}>Your Problems for Today</h3>
-        <div style={styles.recGrid}>
-          {batch.map(problem => (
-            <div key={problem.problemId} style={styles.recCard}>
-              <div style={styles.recTop}>
-                <a
-                  href={problem.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  style={styles.problemLink}
-                >
-                  {problem.name}
-                </a>
-                <span style={styles.rating}>⚡ {problem.rating}</span>
-              </div>
-
-              <p style={styles.why}>{problem.why}</p>
-
-              <div style={styles.prompts}>
-                <p style={styles.promptsTitle}>Think before coding:</p>
-                {problem.thinkingPrompts.map((prompt, i) => (
-                  <p key={i} style={styles.prompt}>→ {prompt}</p>
-                ))}
-              </div>
-
-              <div style={styles.recFooter}>
-                <span style={styles.weaknessTag}>
-                  targets: {problem.targetWeakness}
-                </span>
-                <span style={styles.role}>{problem.role}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
     </div>
   )
-}
-
-const styles = {
-  container: { maxWidth: '1100px', margin: '0 auto', padding: '2rem' },
-  center: { display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' },
-  header: { display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2rem' },
-  buttonGroup: { display: 'flex', gap: '0.5rem' },
-  backBtn: { background: '#1a1a1a', border: '1px solid #333', color: '#a0a0a0', padding: '0.5rem 1rem', borderRadius: '6px', fontSize: '0.9rem' },
-  handle: { fontSize: '1.5rem', fontWeight: '700' },
-  globalEst: { color: '#a0a0a0', fontSize: '0.9rem', marginTop: '0.25rem' },
-  grid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' },
-  card: { background: '#1a1a1a', border: '1px solid #2a2a2a', borderRadius: '12px', padding: '1.5rem' },
-  cardTitle: { fontSize: '1rem', fontWeight: '600', marginBottom: '1rem', color: '#e5e5e5' },
-  weaknessItem: { marginBottom: '1rem', paddingBottom: '1rem', borderBottom: '1px solid #2a2a2a' },
-  weaknessTop: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' },
-  tag: { background: '#2a2a2a', padding: '0.2rem 0.6rem', borderRadius: '4px', fontSize: '0.85rem', color: '#ef4444' },
-  weaknessRating: { fontSize: '1.1rem', fontWeight: '700', color: '#ef4444' },
-  explanation: { fontSize: '0.85rem', color: '#a0a0a0', lineHeight: '1.5' },
-  waRate: { fontSize: '0.8rem', color: '#f59e0b', marginTop: '0.3rem' },
-  muted: { color: '#555', fontSize: '0.9rem' },
-  tagList: { display: 'flex', flexDirection: 'column', gap: '0.5rem' },
-  tagRow: { display: 'flex', alignItems: 'center', gap: '0.75rem' },
-  tagName: { width: '140px', fontSize: '0.8rem', color: '#a0a0a0', textAlign: 'right', flexShrink: 0 },
-  barContainer: { flex: 1, background: '#2a2a2a', borderRadius: '4px', height: '8px', overflow: 'hidden' },
-  bar: { height: '100%', borderRadius: '4px', transition: 'width 0.3s ease' },
-  tagRating: { width: '40px', fontSize: '0.8rem', color: '#555', textAlign: 'right' },
-  recGrid: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', marginTop: '0.5rem' },
-  recCard: { background: '#111', border: '1px solid #2a2a2a', borderRadius: '10px', padding: '1.25rem' },
-  recTop: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem', gap: '0.5rem' },
-  problemLink: { color: '#4a9eed', fontWeight: '600', fontSize: '0.95rem', textDecoration: 'none' },
-  rating: { color: '#f59e0b', fontSize: '0.85rem', fontWeight: '600', flexShrink: 0 },
-  why: { fontSize: '0.82rem', color: '#a0a0a0', lineHeight: '1.5', marginBottom: '0.75rem' },
-  prompts: { background: '#1a1a1a', borderRadius: '6px', padding: '0.75rem', marginBottom: '0.75rem' },
-  promptsTitle: { fontSize: '0.75rem', color: '#8b5cf6', fontWeight: '600', marginBottom: '0.4rem' },
-  prompt: { fontSize: '0.78rem', color: '#888', lineHeight: '1.5' },
-  recFooter: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
-  weaknessTag: { fontSize: '0.75rem', color: '#555' },
-  role: { fontSize: '0.75rem', background: '#2a2a2a', padding: '0.2rem 0.5rem', borderRadius: '4px', color: '#8b5cf6' }
 }

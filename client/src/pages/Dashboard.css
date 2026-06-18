@@ -1,6 +1,3 @@
-/* ===== Dashboard — Premium Dark Theme ===== */
-
-/* ---------- Loading State ---------- */
 .dash-loading {
   display: flex;
   flex-direction: column;
@@ -23,7 +20,6 @@
   letter-spacing: 0.02em;
 }
 
-/* ---------- Top Navigation Bar ---------- */
 .dash-nav {
   position: sticky;
   top: 0;
@@ -32,21 +28,15 @@
   align-items: center;
   justify-content: space-between;
   padding: 0.875rem 2rem;
-  background: rgba(9, 9, 11, 0.82);
-  backdrop-filter: blur(14px) saturate(1.6);
-  -webkit-backdrop-filter: blur(14px) saturate(1.6);
+  background: var(--bg-primary);
   border-bottom: 1px solid var(--border-subtle);
-  animation: fadeIn 0.4s ease;
 }
 
 .dash-nav-logo {
-  font-size: 1.1rem;
-  font-weight: 800;
-  letter-spacing: -0.03em;
-  background: var(--gradient-primary);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--accent-indigo);
   user-select: none;
 }
 
@@ -60,11 +50,10 @@
   font-size: 0.85rem;
   font-weight: 600;
   color: var(--text-secondary);
-  padding: 0.35rem 0.85rem;
+  padding: 0.3rem 0.75rem;
   border-radius: var(--radius-full);
-  background: var(--bg-card);
+  background: rgba(255, 255, 255, 0.04);
   border: 1px solid var(--border-subtle);
-  letter-spacing: 0.01em;
 }
 
 .dash-nav-btn {
@@ -73,26 +62,23 @@
   padding: 0.4rem 1rem;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border-default);
-  background: var(--bg-card);
+  background: transparent;
   color: var(--text-secondary);
-  transition: all var(--transition-fast);
+  transition: color var(--transition-fast), border-color var(--transition-fast);
 }
 
 .dash-nav-btn:hover {
-  background: var(--bg-card-hover);
   color: var(--text-primary);
   border-color: var(--border-strong);
 }
 
 .dash-nav-btn--share {
-  background: linear-gradient(135deg, rgba(6, 182, 212, 0.1), rgba(99, 102, 241, 0.1));
-  border-color: rgba(6, 182, 212, 0.25);
-  color: var(--accent-cyan);
+  color: var(--accent-indigo);
+  border-color: rgba(99, 102, 241, 0.2);
 }
 
 .dash-nav-btn--share:hover {
-  background: linear-gradient(135deg, rgba(6, 182, 212, 0.18), rgba(99, 102, 241, 0.18));
-  border-color: rgba(6, 182, 212, 0.4);
+  border-color: rgba(99, 102, 241, 0.4);
 }
 
 .dash-nav-btn--logout {
@@ -101,19 +87,16 @@
 }
 
 .dash-nav-btn--logout:hover {
-  background: rgba(239, 68, 68, 0.08);
   border-color: rgba(239, 68, 68, 0.35);
 }
 
-/* ---------- Page Container ---------- */
 .dash-container {
   max-width: 1160px;
   margin: 0 auto;
   padding: 2rem 2rem 4rem;
-  animation: fadeInUp 0.5s ease;
+  animation: fadeInUp 0.4s ease;
 }
 
-/* ---------- Stats Row ---------- */
 .dash-stats {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -122,133 +105,81 @@
 }
 
 .dash-stat-card {
-  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 1.5rem 1rem;
+  padding: 1.25rem 1rem;
   border-radius: var(--radius-lg);
-  background: var(--bg-card);
+  background: var(--bg-secondary);
   border: 1px solid var(--border-subtle);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  overflow: hidden;
-  transition: transform var(--transition-fast), box-shadow var(--transition-default);
-}
-
-.dash-stat-card::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  opacity: 0;
-  transition: opacity var(--transition-default);
-  pointer-events: none;
-}
-
-.dash-stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-glow);
-}
-
-.dash-stat-card:hover::before {
-  opacity: 1;
-}
-
-.dash-stat-card--indigo::before {
-  background: radial-gradient(circle at 50% 120%, rgba(99, 102, 241, 0.08) 0%, transparent 70%);
-}
-
-.dash-stat-card--danger::before {
-  background: radial-gradient(circle at 50% 120%, rgba(239, 68, 68, 0.08) 0%, transparent 70%);
-}
-
-.dash-stat-card--cyan::before {
-  background: radial-gradient(circle at 50% 120%, rgba(6, 182, 212, 0.08) 0%, transparent 70%);
 }
 
 .dash-stat-value {
-  font-size: 2.25rem;
+  font-size: 2rem;
   font-weight: 800;
   letter-spacing: -0.03em;
   line-height: 1;
-  margin-bottom: 0.35rem;
+  margin-bottom: 0.3rem;
+  color: var(--text-primary);
 }
 
 .dash-stat-value--indigo {
-  background: var(--gradient-primary);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--accent-indigo);
 }
 
 .dash-stat-value--danger {
   color: var(--color-danger);
 }
 
-.dash-stat-value--cyan {
-  color: var(--accent-cyan);
-}
-
 .dash-stat-label {
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   font-weight: 500;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
 
-/* ---------- Main Grid (Weaknesses + Tag Map) ---------- */
 .dash-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1.25rem;
-  margin-bottom: 2.5rem;
+  margin-bottom: 1.5rem;
 }
 
-/* ---------- Section Card ---------- */
 .dash-card {
-  background: var(--bg-card);
+  background: var(--bg-secondary);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
   padding: 1.5rem;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  transition: border-color var(--transition-default);
-}
-
-.dash-card:hover {
-  border-color: var(--border-default);
 }
 
 .dash-card-title {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.9rem;
-  font-weight: 700;
+  font-size: 0.85rem;
+  font-weight: 600;
   color: var(--text-primary);
   margin-bottom: 1.25rem;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.05em;
 }
 
 .dash-card-title-icon {
-  font-size: 1rem;
-  opacity: 0.8;
+  font-size: 0.9rem;
+  opacity: 0.7;
 }
 
 .dash-card-count {
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   font-weight: 600;
   padding: 0.15rem 0.5rem;
   border-radius: var(--radius-full);
-  background: var(--bg-elevated);
+  background: rgba(255, 255, 255, 0.06);
   color: var(--text-secondary);
 }
 
-/* ---------- Weakness Items ---------- */
 .dash-weakness-list {
   display: flex;
   flex-direction: column;
@@ -261,14 +192,8 @@
 .dash-weakness-item {
   padding: 1rem;
   border-radius: var(--radius-md);
-  background: var(--bg-secondary);
+  background: rgba(255, 255, 255, 0.02);
   border: 1px solid var(--border-subtle);
-  transition: border-color var(--transition-fast), background var(--transition-fast);
-}
-
-.dash-weakness-item:hover {
-  border-color: rgba(239, 68, 68, 0.2);
-  background: rgba(239, 68, 68, 0.03);
 }
 
 .dash-weakness-top {
@@ -281,16 +206,14 @@
 .dash-weakness-tag {
   font-size: 0.78rem;
   font-weight: 600;
-  padding: 0.25rem 0.7rem;
+  padding: 0.2rem 0.6rem;
   border-radius: var(--radius-full);
-  background: rgba(239, 68, 68, 0.12);
+  background: rgba(239, 68, 68, 0.1);
   color: var(--color-danger);
-  border: 1px solid rgba(239, 68, 68, 0.18);
-  letter-spacing: 0.01em;
 }
 
 .dash-weakness-rating {
-  font-size: 1.15rem;
+  font-size: 1.1rem;
   font-weight: 800;
   color: var(--color-danger);
   font-variant-numeric: tabular-nums;
@@ -330,7 +253,7 @@
 }
 
 .dash-wa-track {
-  height: 5px;
+  height: 4px;
   border-radius: var(--radius-full);
   background: rgba(245, 158, 11, 0.1);
   overflow: hidden;
@@ -339,9 +262,8 @@
 .dash-wa-fill {
   height: 100%;
   border-radius: var(--radius-full);
-  background: var(--gradient-danger);
+  background: var(--color-warning);
   animation: barGrow 0.8s ease forwards;
-  transition: width var(--transition-slow);
 }
 
 .dash-weakness-empty {
@@ -351,9 +273,7 @@
   padding: 2rem 1rem;
 }
 
-/* ---------- Tag Skill Map ---------- */
 .dash-tagmap {
-  position: relative;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
@@ -381,9 +301,8 @@
 }
 
 .dash-tag-bar-wrap {
-  position: relative;
   flex: 1;
-  height: 10px;
+  height: 8px;
   border-radius: var(--radius-full);
   background: rgba(255, 255, 255, 0.04);
   overflow: hidden;
@@ -393,15 +312,14 @@
   height: 100%;
   border-radius: var(--radius-full);
   animation: barGrow 0.7s ease forwards;
-  transition: width var(--transition-slow);
 }
 
 .dash-tag-bar--above {
-  background: var(--gradient-success);
+  background: var(--color-success);
 }
 
 .dash-tag-bar--below {
-  background: var(--gradient-danger);
+  background: var(--color-danger);
 }
 
 .dash-tag-rating {
@@ -414,45 +332,8 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* Global estimate reference line */
-.dash-tagmap-ref {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 2px;
-  border-left: 2px dashed var(--accent-indigo);
-  opacity: 0.45;
-  pointer-events: none;
-  z-index: 2;
-}
-
-.dash-tagmap-ref-label {
-  position: absolute;
-  top: -1.6rem;
-  transform: translateX(-50%);
-  font-size: 0.65rem;
-  font-weight: 700;
-  color: var(--accent-indigo);
-  white-space: nowrap;
-  letter-spacing: 0.03em;
-  opacity: 0.7;
-}
-
-/* ---------- Training Plan Section ---------- */
 .dash-training {
   margin-top: 0;
-}
-
-.dash-training-title {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 1.25rem;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
 }
 
 .dash-rec-grid {
@@ -461,25 +342,18 @@
   gap: 1rem;
 }
 
-/* ---------- Recommendation Card ---------- */
 .dash-rec-card {
   display: flex;
   flex-direction: column;
-  padding: 1.35rem;
-  border-radius: var(--radius-lg);
-  background: var(--bg-card);
+  padding: 1.25rem;
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.02);
   border: 1px solid var(--border-subtle);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  transition: transform var(--transition-default),
-              box-shadow var(--transition-default),
-              border-color var(--transition-default);
+  transition: border-color var(--transition-fast);
 }
 
 .dash-rec-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-elevated);
-  border-color: rgba(6, 182, 212, 0.2);
+  border-color: var(--border-default);
 }
 
 .dash-rec-top {
@@ -492,15 +366,15 @@
 
 .dash-rec-link {
   font-size: 0.92rem;
-  font-weight: 700;
-  color: var(--accent-cyan);
+  font-weight: 600;
+  color: var(--accent-indigo);
   text-decoration: none;
   line-height: 1.35;
   transition: color var(--transition-fast);
 }
 
 .dash-rec-link:hover {
-  color: #22d3ee;
+  color: #818cf8;
   text-decoration: underline;
   text-underline-offset: 3px;
 }
@@ -509,11 +383,10 @@
   flex-shrink: 0;
   font-size: 0.75rem;
   font-weight: 700;
-  padding: 0.2rem 0.6rem;
+  padding: 0.2rem 0.55rem;
   border-radius: var(--radius-full);
-  background: rgba(245, 158, 11, 0.12);
+  background: rgba(245, 158, 11, 0.1);
   color: var(--color-warning);
-  border: 1px solid rgba(245, 158, 11, 0.18);
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
@@ -526,22 +399,21 @@
   flex: 1;
 }
 
-/* Thinking prompts box */
 .dash-rec-prompts {
   padding: 0.85rem;
-  border-radius: var(--radius-md);
-  background: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.03);
   border: 1px solid var(--border-subtle);
   margin-bottom: 1rem;
 }
 
 .dash-rec-prompts-title {
   font-size: 0.7rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--accent-violet);
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  margin-bottom: 0.45rem;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.4rem;
 }
 
 .dash-rec-prompt {
@@ -554,10 +426,9 @@
 .dash-rec-prompt::before {
   content: '→ ';
   color: var(--accent-violet);
-  opacity: 0.6;
+  opacity: 0.5;
 }
 
-/* Card footer */
 .dash-rec-footer {
   display: flex;
   justify-content: space-between;
@@ -584,11 +455,9 @@
   border-radius: var(--radius-full);
   background: rgba(139, 92, 246, 0.1);
   color: var(--accent-violet);
-  border: 1px solid rgba(139, 92, 246, 0.18);
   text-transform: capitalize;
 }
 
-/* ---------- Responsive ---------- */
 @media (max-width: 1024px) {
   .dash-rec-grid {
     grid-template-columns: repeat(2, 1fr);

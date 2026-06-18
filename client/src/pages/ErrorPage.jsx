@@ -2,7 +2,7 @@ import './ErrorPage.css'
 
 function BrokenCompass() {
   return (
-    <svg className="error-icon error-icon--float" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg className="error-icon" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
       <circle cx="60" cy="60" r="52" stroke="rgba(99,102,241,0.3)" strokeWidth="2" strokeDasharray="8 4" />
       <circle cx="60" cy="60" r="44" stroke="rgba(139,92,246,0.2)" strokeWidth="1.5" />
       <text x="60" y="18" textAnchor="middle" fill="rgba(99,102,241,0.5)" fontSize="10" fontWeight="700">N</text>
@@ -21,7 +21,7 @@ function BrokenCompass() {
 
 function CrashIcon() {
   return (
-    <svg className="error-icon error-icon--float" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg className="error-icon" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path
         d="M60 20L105 95H15L60 20Z"
         stroke="rgba(99,102,241,0.3)"
@@ -47,7 +47,7 @@ function CrashIcon() {
 
 function GenericIcon() {
   return (
-    <svg className="error-icon error-icon--pulse" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg className="error-icon" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
       <circle cx="60" cy="60" r="50" stroke="rgba(99,102,241,0.2)" strokeWidth="1.5" strokeDasharray="6 4" />
       <circle cx="60" cy="60" r="38" stroke="rgba(139,92,246,0.15)" strokeWidth="1.5" fill="rgba(99,102,241,0.04)" />
       <line x1="60" y1="38" x2="60" y2="68" stroke="#6366f1" strokeWidth="5" strokeLinecap="round" />
@@ -71,10 +71,8 @@ export default function ErrorPage({ code = 500, title, message, onRetry, onHome 
   )
 
   return (
-    <div className="error-container">
-      <div className="error-grid-bg" />
-
-      <div className="error-card">
+    <div className="error-container page-center">
+      <div className="error-card card-surface">
         <div className="error-icon-wrapper">
           {getIcon(code)}
         </div>
@@ -87,7 +85,7 @@ export default function ErrorPage({ code = 500, title, message, onRetry, onHome 
 
         <div className="error-actions">
           {onRetry && (
-            <button className="error-btn error-btn--primary" onClick={onRetry}>
+            <button className="btn-primary" onClick={onRetry}>
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M2.5 8a5.5 5.5 0 0 1 9.68-3.5M13.5 8a5.5 5.5 0 0 1-9.68 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
                 <path d="M12.5 1v3.5H9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -97,7 +95,7 @@ export default function ErrorPage({ code = 500, title, message, onRetry, onHome 
             </button>
           )}
           {onHome && (
-            <button className="error-btn error-btn--secondary" onClick={onHome}>
+            <button className="btn-ghost" onClick={onHome}>
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M2 6.5L8 2l6 4.5V13a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6.5Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
                 <path d="M6 14V9h4v5" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />

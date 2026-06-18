@@ -10,5 +10,4 @@ client/dist/
 npm-debug.log*
 .DS_Store
 Thumbs.db
-client/.vite/
-client_secret_457031608686-gli86etco7j12637gfuo98i2mcprmt52.apps.googleusercontent.com.json
+client/.vite/~

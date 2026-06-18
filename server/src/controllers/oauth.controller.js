@@ -34,16 +34,29 @@ const linkHandle = catchAsync(async (req, res) => {
 
   const existing = await User.findOne({ cf_handle: normalizedHandle });
   if (existing && existing._id.toString() !== req.user.userId) {
-    throw new AppError('This CF handle is already linked to another account', 409);
+    if (existing.email || existing.google_id || existing.password_hash) {
+      throw new AppError('This CF handle is already linked to another account', 409);
+    }
+    const mongoose = require('mongoose');
+    const Submission = require('../models/Submission');
+    const SkillProfile = require('../models/SkillProfile');
+    
+    await Submission.updateMany({ user_id: existing._id }, { user_id: req.user.userId });
+    await SkillProfile.findOneAndDelete({ user_id: req.user.userId });
+    await SkillProfile.findOneAndUpdate({ user_id: existing._id }, { user_id: req.user.userId });
+    await User.findByIdAndDelete(existing._id);
   }
-
-  const syncResult = await syncService.syncUser(normalizedHandle);
+  const syncResult = await syncService.syncUser(normalizedHandle, req.user.userId);
   await skillEngineService.buildAndSaveProfile(syncResult.userId);
+
+  const { delCache } = require('../config/redis');
+  await delCache(`profile:${normalizedHandle}`);
+  await delCache(`recommendations:${req.user.userId}`);
 
   const user = await User.findByIdAndUpdate(
     req.user.userId,
     { cf_handle: normalizedHandle },
-    { new: true }
+    { returnDocument: 'after' }
   ).select('_id cf_handle email avatar_url auth_provider');
 
   if (!user) {

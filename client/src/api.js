@@ -24,7 +24,7 @@ async function handleResponse(res) {
   let message = 'Something went wrong';
   try {
     const body = await res.json();
-    message = body.error || body.message || message;
+    message = body.message || (typeof body.error === 'string' ? body.error : body.error?.message) || message;
   } catch (_) {}
 
   const err = new Error(message);

@@ -1,6 +1,3 @@
-/* ===== Radar Page — Premium Shareable Skill Card ===== */
-
-/* --- Layout --- */
 .radar-page {
   max-width: 700px;
   margin: 0 auto;
@@ -8,7 +5,6 @@
   min-height: 100vh;
 }
 
-/* --- Loading State --- */
 .radar-loading {
   display: flex;
   flex-direction: column;
@@ -25,7 +21,7 @@
 }
 
 .radar-loading-text {
-  font-size: 1.15rem;
+  font-size: 1.1rem;
   font-weight: 600;
   color: var(--text-primary);
   animation: pulse 1.5s ease infinite;
@@ -34,10 +30,8 @@
 .radar-loading-subtext {
   font-size: 0.85rem;
   color: var(--text-muted);
-  letter-spacing: 0.01em;
 }
 
-/* --- Error State --- */
 .radar-error {
   display: flex;
   flex-direction: column;
@@ -61,10 +55,9 @@
   line-height: 1.5;
 }
 
-/* --- Header --- */
 .radar-header {
   margin-bottom: 2rem;
-  animation: fadeInUp 0.5s ease forwards;
+  animation: fadeInUp 0.4s ease;
 }
 
 .radar-title-row {
@@ -75,13 +68,10 @@
 }
 
 .radar-logo {
-  font-size: 1.15rem;
-  font-weight: 800;
+  font-size: 1.1rem;
+  font-weight: 700;
   letter-spacing: -0.02em;
-  background: var(--gradient-primary);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--accent-indigo);
 }
 
 .radar-badge {
@@ -90,14 +80,14 @@
   text-transform: uppercase;
   letter-spacing: 0.08em;
   background: rgba(99, 102, 241, 0.1);
-  border: 1px solid rgba(99, 102, 241, 0.2);
+  border: 1px solid rgba(99, 102, 241, 0.15);
   border-radius: var(--radius-full);
-  padding: 0.25rem 0.75rem;
+  padding: 0.2rem 0.65rem;
   color: var(--accent-indigo);
 }
 
 .radar-handle {
-  font-size: 2.5rem;
+  font-size: 2.25rem;
   font-weight: 800;
   letter-spacing: -0.03em;
   color: var(--text-primary);
@@ -127,32 +117,22 @@
   color: var(--accent-indigo);
 }
 
-/* --- Weakness Callout --- */
 .radar-weakness-callout {
   background: rgba(239, 68, 68, 0.04);
-  border: 1px solid rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.1);
   border-radius: var(--radius-lg);
   padding: 1.25rem 1.5rem;
-  margin-bottom: 1.75rem;
-  animation: fadeInUp 0.5s ease 0.1s forwards;
-  opacity: 0;
+  margin-bottom: 1.5rem;
+  animation: fadeInUp 0.4s ease 0.05s both;
 }
 
 .radar-weakness-label {
   font-size: 0.72rem;
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.08em;
   color: var(--color-danger);
   margin-bottom: 0.75rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.radar-weakness-label::before {
-  content: '⚠';
-  font-size: 0.8rem;
 }
 
 .radar-weakness-pills {
@@ -165,16 +145,10 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background: rgba(239, 68, 68, 0.08);
-  border: 1px solid rgba(239, 68, 68, 0.15);
+  background: rgba(239, 68, 68, 0.06);
+  border: 1px solid rgba(239, 68, 68, 0.12);
   border-radius: var(--radius-sm);
-  padding: 0.4rem 0.75rem;
-  transition: var(--transition-fast);
-}
-
-.radar-weakness-pill:hover {
-  background: rgba(239, 68, 68, 0.12);
-  border-color: rgba(239, 68, 68, 0.25);
+  padding: 0.35rem 0.7rem;
 }
 
 .radar-weakness-pill-tag {
@@ -190,25 +164,20 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* --- Skill Map Card (Glassmorphic) --- */
 .radar-skillmap-card {
-  background: var(--bg-card);
+  background: var(--bg-secondary);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
-  padding: 1.75rem;
-  margin-bottom: 1.75rem;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  box-shadow: var(--shadow-card);
-  animation: fadeInUp 0.5s ease 0.2s forwards;
-  opacity: 0;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  animation: fadeInUp 0.4s ease 0.1s both;
 }
 
 .radar-skillmap-title {
   font-size: 0.78rem;
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.08em;
   color: var(--text-muted);
   margin-bottom: 1.25rem;
   display: flex;
@@ -220,12 +189,12 @@
   content: '';
   display: inline-block;
   width: 3px;
-  height: 14px;
-  background: var(--gradient-primary);
+  height: 12px;
+  background: var(--accent-indigo);
   border-radius: 2px;
+  flex-shrink: 0;
 }
 
-/* --- Tag Rows --- */
 .radar-tag-list {
   display: flex;
   flex-direction: column;
@@ -245,7 +214,6 @@
   text-align: right;
   flex-shrink: 0;
   color: var(--text-secondary);
-  transition: var(--transition-fast);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -258,50 +226,35 @@
 .radar-bar-track {
   flex: 1;
   background: rgba(255, 255, 255, 0.04);
-  border-radius: 5px;
-  height: 12px;
+  border-radius: 4px;
+  height: 10px;
   position: relative;
   overflow: visible;
 }
 
 .radar-bar-fill {
   height: 100%;
-  border-radius: 5px;
-  animation: barGrow 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-  position: relative;
-  box-shadow: 0 0 8px rgba(0, 0, 0, 0.15);
+  border-radius: 4px;
+  animation: barGrow 0.6s ease forwards;
 }
 
 .radar-bar-fill--green {
-  background: var(--gradient-success);
+  background: var(--color-success);
 }
 
 .radar-bar-fill--red {
-  background: var(--gradient-danger);
+  background: var(--color-danger);
 }
 
 .radar-global-marker {
   position: absolute;
-  top: -4px;
+  top: -3px;
   width: 2px;
-  height: 20px;
-  background: var(--accent-cyan);
+  height: 16px;
+  background: var(--accent-indigo);
   border-radius: 1px;
-  opacity: 0.7;
+  opacity: 0.6;
   z-index: 2;
-  transition: var(--transition-default);
-}
-
-.radar-global-marker::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -2px;
-  width: 6px;
-  height: 6px;
-  background: var(--accent-cyan);
-  border-radius: 50%;
-  opacity: 0.4;
 }
 
 .radar-tag-rating {
@@ -326,31 +279,22 @@
 }
 
 .radar-legend-marker {
-  color: var(--accent-cyan);
+  color: var(--accent-indigo);
   font-weight: 700;
 }
 
-/* --- CTA Section --- */
 .radar-cta {
-  position: relative;
-  border-radius: var(--radius-lg);
-  padding: 2px;
-  margin-bottom: 1.75rem;
-  background: linear-gradient(135deg, var(--accent-indigo), var(--accent-violet), var(--accent-cyan));
-  background-size: 200% 200%;
-  animation: fadeInUp 0.5s ease 0.3s forwards, gradientShift 6s ease infinite;
-  opacity: 0;
-}
-
-.radar-cta-inner {
   background: var(--bg-secondary);
-  border-radius: calc(var(--radius-lg) - 2px);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
   padding: 2rem;
   text-align: center;
+  margin-bottom: 1.5rem;
+  animation: fadeInUp 0.4s ease 0.15s both;
 }
 
 .radar-cta-text {
-  font-size: 1.15rem;
+  font-size: 1.1rem;
   font-weight: 600;
   color: var(--text-primary);
   margin-bottom: 1.25rem;
@@ -358,45 +302,9 @@
 }
 
 .radar-cta-button {
-  display: inline-block;
-  background: var(--gradient-primary);
-  border: none;
-  border-radius: var(--radius-md);
-  padding: 0.85rem 2.25rem;
-  font-size: 1rem;
-  font-weight: 600;
-  color: #fff;
-  cursor: pointer;
-  transition: var(--transition-default);
   margin-bottom: 0.85rem;
-  position: relative;
-  overflow: hidden;
-}
-
-.radar-cta-button::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.15) 0%,
-    rgba(255, 255, 255, 0) 50%
-  );
-  opacity: 0;
-  transition: var(--transition-default);
-}
-
-.radar-cta-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(99, 102, 241, 0.35);
-}
-
-.radar-cta-button:hover::after {
-  opacity: 1;
-}
-
-.radar-cta-button:active {
-  transform: translateY(0);
+  padding: 0.85rem 2rem;
+  font-size: 0.95rem;
 }
 
 .radar-cta-subtext {
@@ -405,24 +313,20 @@
   line-height: 1.5;
 }
 
-/* --- Footer --- */
 .radar-footer {
   font-size: 0.75rem;
   color: var(--text-faint);
   text-align: center;
   padding-top: 0.5rem;
-  animation: fadeInUp 0.5s ease 0.4s forwards;
-  opacity: 0;
 }
 
-/* --- Responsive --- */
 @media (max-width: 640px) {
   .radar-page {
     padding: 2rem 1rem 1.5rem;
   }
 
   .radar-handle {
-    font-size: 1.85rem;
+    font-size: 1.75rem;
   }
 
   .radar-meta-row {
@@ -437,7 +341,7 @@
   }
 
   .radar-bar-track {
-    height: 10px;
+    height: 8px;
   }
 
   .radar-tag-rating {
@@ -449,7 +353,7 @@
     padding: 1.25rem;
   }
 
-  .radar-cta-inner {
+  .radar-cta {
     padding: 1.5rem;
   }
 
@@ -458,9 +362,8 @@
   }
 
   .radar-cta-button {
-    padding: 0.75rem 1.75rem;
-    font-size: 0.95rem;
     width: 100%;
+    padding: 0.75rem 1.5rem;
   }
 
   .radar-weakness-callout {

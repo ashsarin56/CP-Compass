@@ -1,129 +1,43 @@
 .link-container {
-  position: relative;
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem;
-  overflow: hidden;
-  background: var(--bg-primary);
-}
-
-.link-container::before,
-.link-container::after {
-  content: '';
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(120px);
-  opacity: 0.35;
-  pointer-events: none;
-  z-index: 0;
-}
-
-.link-container::before {
-  width: 550px;
-  height: 550px;
-  background: radial-gradient(circle, #6366f1 0%, transparent 70%);
-  top: -15%;
-  left: -10%;
-  animation: linkOrbFloat 14s ease-in-out infinite alternate;
-}
-
-.link-container::after {
-  width: 480px;
-  height: 480px;
-  background: radial-gradient(circle, #10b981 0%, transparent 70%);
-  bottom: -10%;
-  right: -8%;
-  animation: linkOrbFloat 12s ease-in-out infinite alternate-reverse;
-}
-
-@keyframes linkOrbFloat {
-  0%   { transform: translate(0, 0) scale(1); }
-  50%  { transform: translate(28px, -18px) scale(1.06); }
-  100% { transform: translate(-18px, 14px) scale(0.96); }
-}
-
-.link-grid-bg {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  background-image:
-    linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
-  background-size: 64px 64px;
-  mask-image: radial-gradient(ellipse 70% 60% at 50% 40%, black 20%, transparent 100%);
-  -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 40%, black 20%, transparent 100%);
+  flex-direction: column;
 }
 
 .link-card {
-  position: relative;
-  z-index: 1;
-  max-width: 460px;
+  max-width: 420px;
   width: 100%;
   text-align: center;
-  background: rgba(255, 255, 255, 0.04);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: var(--radius-xl, 16px);
-  padding: 3rem 2.5rem 2.5rem;
-  box-shadow:
-    0 0 60px rgba(99, 102, 241, 0.08),
-    0 25px 50px rgba(0, 0, 0, 0.4);
-  animation: fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+  padding: 2.5rem 2rem 2rem;
+  animation: fadeInUp 0.5s ease both;
 }
 
-.link-card::before {
-  content: '';
-  position: absolute;
-  inset: -1px;
-  border-radius: inherit;
-  padding: 1px;
-  background: linear-gradient(
-    160deg,
-    rgba(99, 102, 241, 0.25) 0%,
-    transparent 40%,
-    transparent 60%,
-    rgba(16, 185, 129, 0.15) 100%
-  );
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  pointer-events: none;
-}
-
-.link-icon-wrapper {
-  display: flex;
-  justify-content: center;
+.link-step {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent-indigo);
+  background: rgba(99, 102, 241, 0.1);
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius-full);
   margin-bottom: 1.25rem;
 }
 
-.link-icon {
-  width: 80px;
-  height: 80px;
-  animation: float 4s ease-in-out infinite;
-}
-
 .link-title {
-  font-size: 2rem;
-  font-weight: 800;
-  letter-spacing: -0.03em;
-  line-height: 1.1;
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
   margin-bottom: 0.75rem;
-  background: linear-gradient(135deg, var(--accent-indigo), var(--accent-violet));
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--text-primary);
 }
 
 .link-subtitle {
-  font-size: 0.92rem;
+  font-size: 0.9rem;
   color: var(--text-secondary);
-  line-height: 1.65;
-  margin-bottom: 2rem;
-  max-width: 380px;
+  line-height: 1.6;
+  margin-bottom: 1.75rem;
+  max-width: 340px;
   margin-left: auto;
   margin-right: auto;
 }
@@ -134,83 +48,9 @@
   gap: 0.75rem;
 }
 
-.link-input {
-  width: 100%;
-  padding: 0.85rem 1rem;
-  font-size: 0.92rem;
-  font-family: inherit;
-  color: var(--text-primary);
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-md, 10px);
-  outline: none;
-  transition:
-    border-color var(--transition-fast, 0.15s),
-    box-shadow var(--transition-fast, 0.15s),
-    background var(--transition-fast, 0.15s);
-}
-
-.link-input::placeholder {
-  color: var(--text-muted);
-}
-
-.link-input:focus {
-  border-color: var(--accent-indigo);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15), 0 0 20px rgba(99, 102, 241, 0.08);
-  background: rgba(255, 255, 255, 0.06);
-}
-
-.link-input:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
 .link-submit {
-  position: relative;
   width: 100%;
-  padding: 0.85rem;
   margin-top: 0.25rem;
-  font-size: 0.95rem;
-  font-weight: 600;
-  font-family: inherit;
-  color: #fff;
-  background: var(--gradient-primary);
-  border: none;
-  border-radius: var(--radius-md, 10px);
-  cursor: pointer;
-  overflow: hidden;
-  transition:
-    box-shadow var(--transition-default, 0.2s),
-    transform var(--transition-fast, 0.15s),
-    opacity var(--transition-fast, 0.15s);
-}
-
-.link-submit::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, transparent 60%);
-  opacity: 0;
-  transition: opacity var(--transition-fast, 0.15s);
-}
-
-.link-submit:hover:not(:disabled) {
-  box-shadow: 0 0 30px rgba(99, 102, 241, 0.35), 0 8px 24px rgba(99, 102, 241, 0.2);
-  transform: translateY(-1px);
-}
-
-.link-submit:hover:not(:disabled)::before {
-  opacity: 1;
-}
-
-.link-submit:active:not(:disabled) {
-  transform: translateY(0);
-}
-
-.link-submit:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
 }
 
 .link-submit-content {
@@ -241,7 +81,7 @@
 }
 
 .link-note {
-  margin-top: 1.75rem;
+  margin-top: 1.5rem;
   font-size: 0.78rem;
   color: var(--text-muted);
   line-height: 1.5;
@@ -257,25 +97,10 @@
   }
 
   .link-title {
-    font-size: 1.65rem;
+    font-size: 1.35rem;
   }
 
   .link-subtitle {
     font-size: 0.86rem;
-  }
-
-  .link-icon {
-    width: 64px;
-    height: 64px;
-  }
-
-  .link-container::before {
-    width: 350px;
-    height: 350px;
-  }
-
-  .link-container::after {
-    width: 300px;
-    height: 300px;
   }
 }

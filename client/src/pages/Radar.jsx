@@ -22,7 +22,6 @@ export default function Radar({ handle, onAnalyze }) {
     load()
   }, [handle])
 
-  /* ---------- Loading ---------- */
   if (loading) return (
     <div className="radar-loading">
       <div className="spinner" />
@@ -33,7 +32,6 @@ export default function Radar({ handle, onAnalyze }) {
     </div>
   )
 
-  /* ---------- Error ---------- */
   if (error) return (
     <div className="radar-error">
       <span className="radar-error-icon">✕</span>
@@ -41,7 +39,6 @@ export default function Radar({ handle, onAnalyze }) {
     </div>
   )
 
-  /* ---------- Data ---------- */
   const tagSkills = data.tagSkills || {}
   const weaknesses = data.weaknesses || []
 
@@ -50,12 +47,10 @@ export default function Radar({ handle, onAnalyze }) {
     .sort((a, b) => a[1].rating - b[1].rating)
 
   const maxRating = Math.max(...sortedTags.map(([, v]) => v.rating), 1600)
-
   const globalMarkerLeft = `${Math.min((data.globalEstimate / maxRating) * 100, 100)}%`
 
   return (
     <div className="radar-page">
-      {/* ── Header ── */}
       <header className="radar-header">
         <div className="radar-title-row">
           <span className="radar-logo">CP Compass</span>
@@ -81,7 +76,6 @@ export default function Radar({ handle, onAnalyze }) {
         </div>
       </header>
 
-      {/* ── Weakness Callout ── */}
       {weaknesses.length > 0 && (
         <div className="radar-weakness-callout">
           <p className="radar-weakness-label">Top Weaknesses Detected</p>
@@ -96,11 +90,10 @@ export default function Radar({ handle, onAnalyze }) {
         </div>
       )}
 
-      {/* ── Skill Map ── */}
       <div className="radar-skillmap-card">
         <h3 className="radar-skillmap-title">Tag Skill Map</h3>
 
-        <div className="radar-tag-list stagger-children">
+        <div className="radar-tag-list">
           {sortedTags.map(([tag, data_]) => {
             const isWeak = weaknesses.some(w => w.tag === tag)
             const barWidth = Math.min((data_.rating / maxRating) * 100, 100)
@@ -148,25 +141,21 @@ export default function Radar({ handle, onAnalyze }) {
         </p>
       </div>
 
-      {/* ── CTA ── */}
       <div className="radar-cta">
-        <div className="radar-cta-inner">
-          <p className="radar-cta-text">
-            Want to know exactly what to solve next?
-          </p>
-          <button
-            className="radar-cta-button"
-            onClick={() => onAnalyze(data.handle)}
-          >
-            Get My Training Plan →
-          </button>
-          <p className="radar-cta-subtext">
-            CP Compass generates 3 surgical problems targeting your exact gaps
-          </p>
-        </div>
+        <p className="radar-cta-text">
+          Want to know exactly what to solve next?
+        </p>
+        <button
+          className="radar-cta-button btn-primary"
+          onClick={() => onAnalyze(data.handle)}
+        >
+          Get My Training Plan →
+        </button>
+        <p className="radar-cta-subtext">
+          CP Compass generates 3 surgical problems targeting your exact gaps
+        </p>
       </div>
 
-      {/* ── Footer ── */}
       <p className="radar-footer">
         cpcompass.app · Generated{' '}
         {new Date(data.computedAt).toLocaleDateString()}

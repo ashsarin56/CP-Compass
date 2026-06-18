@@ -5,12 +5,18 @@ const feedbackService = require('../services/feedback');
 const BaseService = require('../services/BaseService');
 
 class SyncService extends BaseService {
-  async syncUser(cfHandle) {
+  async syncUser(cfHandle, explicitUserId = null) {
     try {
       console.log(`Starting sync for: ${cfHandle}`);
+      
+      let query = { cf_handle: this.normalizeHandle(cfHandle) };
+      if (explicitUserId) {
+        query = { _id: explicitUserId };
+      }
+
       const user = await User.findOneAndUpdate(
-        { cf_handle: this.normalizeHandle(cfHandle) },
-        { sync_status: 'syncing' },
+        query,
+        { cf_handle: this.normalizeHandle(cfHandle), sync_status: 'syncing' },
         { upsert: true, returnDocument: 'after' }
       );
       const userId = user._id;

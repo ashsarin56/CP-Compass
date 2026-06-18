@@ -52,22 +52,24 @@ class RecommendationService extends BaseService {
 
     if (!problem.rating) return -1;
 
-    const targetMin = tagRating + 50;
-    const targetMax = tagRating + 150;
-    const withinZPD = problem.rating >= targetMin && problem.rating <= targetMax;
-    if (!withinZPD) return -1;
-
-    let score = 100;
-
+    const targetRating = tagRating + 200;
+    const sigma = 450;
+    
+    const ratingWeight = Math.exp(-0.5 * Math.pow((problem.rating - targetRating) / sigma, 2));
+    
+    let freshness = 1.0;
     if (problem.contestId) {
-      score += Math.min(problem.contestId / 1000, 30);
+      freshness = Math.min(problem.contestId / 2000, 1.0);
     }
-
+    
     const solves = solvedCount || 0;
-    if (solves > 1000) score += 10;
-    if (solves > 5000) score += 5;
-
-    return score;
+    let popularityBonus = 0;
+    if (solves > 1000) popularityBonus += 0.2;
+    if (solves > 5000) popularityBonus += 0.1;
+    
+    const u = 0.3 + Math.random() * 0.1;
+    
+    return (ratingWeight * 3 + freshness * 1.5 + popularityBonus + u) * 100;
   }
 
   #generateThinkingPrompts(problem) {
