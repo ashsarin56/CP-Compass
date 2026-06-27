@@ -7,20 +7,16 @@ const userSchema = new mongoose.Schema({
     sparse: true
   },
   email: {
-    type: String,
-    default: null
+    type: String
   },
   password_hash: {
-    type: String,
-    default: null
+    type: String
   },
   google_id: {
-    type: String,
-    default: null
+    type: String
   },
   avatar_url: {
-    type: String,
-    default: null
+    type: String
   },
   auth_provider: {
     type: String,
