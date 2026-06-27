@@ -20,13 +20,9 @@
 }
 
 .landing-nav-logo {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 1.1rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  color: var(--accent-indigo);
+  height: 32px;
+  width: auto;
+  object-fit: contain;
   user-select: none;
 }
 
@@ -903,10 +899,9 @@
 
 .landing-footer-logo {
   display: block;
-  font-size: 1rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  color: var(--accent-indigo);
+  height: 28px;
+  width: auto;
+  object-fit: contain;
   margin-bottom: 0.5rem;
 }
 

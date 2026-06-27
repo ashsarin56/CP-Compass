@@ -33,10 +33,9 @@
 }
 
 .dash-nav-logo {
-  font-size: 1.05rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  color: var(--accent-indigo);
+  height: 30px;
+  width: auto;
+  object-fit: contain;
   user-select: none;
 }
 
@@ -514,7 +513,7 @@
   }
 
   .dash-nav-logo {
-    font-size: 0.95rem;
+    height: 24px;
   }
 
   .dash-nav-btn {

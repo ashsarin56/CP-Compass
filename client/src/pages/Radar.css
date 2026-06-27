@@ -68,10 +68,9 @@
 }
 
 .radar-logo {
-  font-size: 1.1rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  color: var(--accent-indigo);
+  height: 30px;
+  width: auto;
+  object-fit: contain;
 }
 
 .radar-badge {
