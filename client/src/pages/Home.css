@@ -20,11 +20,21 @@
 }
 
 .landing-nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   font-size: 1.1rem;
   font-weight: 700;
   letter-spacing: -0.02em;
   color: var(--accent-indigo);
   user-select: none;
+}
+
+.landing-nav-logo-img {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  border-radius: 4px;
 }
 
 .landing-nav-links {

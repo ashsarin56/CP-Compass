@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { getRadar } from '../api'
+import logo from '../assets/logo.svg'
 import './Radar.css'
 
 export default function Radar({ handle, onAnalyze }) {
@@ -53,7 +54,7 @@ export default function Radar({ handle, onAnalyze }) {
     <div className="radar-page">
       <header className="radar-header">
         <div className="radar-title-row">
-          <span className="radar-logo">CP Compass</span>
+          <img src={logo} alt="CP Compass" className="radar-logo" />
           <span className="radar-badge">Skill Radar</span>
         </div>
 

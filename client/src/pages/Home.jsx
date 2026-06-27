@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react'
 import { signup, login, saveToken, getAuthBaseUrl } from '../api'
+import logo from '../assets/logo.svg'
 import './Home.css'
 
 export default function Home({ onAnalyzed, onGoToRadar }) {
@@ -48,7 +49,10 @@ export default function Home({ onAnalyzed, onGoToRadar }) {
   return (
     <div className="landing">
       <nav className="landing-nav">
-        <span className="landing-nav-logo">CP Compass</span>
+        <span className="landing-nav-logo">
+          <img src={logo} alt="CP Compass" className="landing-nav-logo-img" />
+          CP Compass
+        </span>
         <div className="landing-nav-links">
           <button type="button" className="landing-nav-link" onClick={() => scrollTo(featuresRef)}>Features</button>
           <button type="button" className="landing-nav-link" onClick={() => scrollTo(howRef)}>How It Works</button>

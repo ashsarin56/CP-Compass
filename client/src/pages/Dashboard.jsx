@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { getProfile, getRecommendations } from '../api'
+import logo from '../assets/logo.svg'
 import './Dashboard.css'
 
 export default function Dashboard({ handle, onBack }) {
@@ -38,7 +39,7 @@ export default function Dashboard({ handle, onBack }) {
   return (
     <div>
       <nav className="dash-nav">
-        <span className="dash-nav-logo">CP Compass</span>
+        <img src={logo} alt="CP Compass" className="dash-nav-logo" />
         <div className="dash-nav-right">
           <span className="dash-nav-handle">{handle}</span>
           <button
