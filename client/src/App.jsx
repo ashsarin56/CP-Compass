@@ -80,6 +80,12 @@ export default function App() {
   }
 
   function goToDashboard(h) {
+    const token = localStorage.getItem('cp_compass_token')
+    if (!token) {
+      setView('home')
+      window.history.pushState({}, '', `/`)
+      return
+    }
     setHandle(h)
     setView('dashboard')
     window.history.pushState({}, '', `/`)
