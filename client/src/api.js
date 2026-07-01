@@ -25,7 +25,9 @@ async function handleResponse(res) {
   try {
     const body = await res.json();
     message = body.message || (typeof body.error === 'string' ? body.error : body.error?.message) || message;
-  } catch (_) {}
+  } catch (e) {
+    console.log(`Error: ${e}`);
+  }
 
   const err = new Error(message);
   err.code = res.status;
@@ -35,7 +37,7 @@ async function handleResponse(res) {
 async function safeFetch(url, options) {
   try {
     return await fetch(url, options);
-  } catch (e) {
+  } catch {
     const err = new Error('Network error. Please check your connection.');
     err.code = 0;
     throw err;
@@ -99,6 +101,14 @@ export async function getRecommendations(handle) {
 }
 export async function getRadar(handle) {
   const res = await safeFetch(`${BASE}/radar/${handle}`);
+  return handleResponse(res);
+}
+export async function markProblemSolved(handle, problemId) {
+  const res = await safeFetch(`${BASE}/recommendations/${handle}/mark-solved`, {
+    method: 'POST',
+    headers: authHeaders(),
+    body: JSON.stringify({ problemId })
+  });
   return handleResponse(res);
 }
 

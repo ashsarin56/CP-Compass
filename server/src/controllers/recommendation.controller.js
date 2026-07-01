@@ -7,4 +7,13 @@ const getRecommendations = catchAsync(async (req, res) => {
   res.json({ success: true, data: batch });
 });
 
-module.exports = { getRecommendations };
+const markSolved = catchAsync(async (req, res) => {
+  const { problemId } = req.body;
+  const user = await recommendationService.findUserOrThrow(req.params.handle);
+  const result = await recommendationService.verifySolvedAndReplace(
+    user._id, user.cf_handle, problemId
+  );
+  res.json({ success: true, data: result });
+});
+
+module.exports = { getRecommendations, markSolved };

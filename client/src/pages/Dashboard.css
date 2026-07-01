@@ -507,6 +507,53 @@
   }
 }
 
+.dash-solve-area {
+  margin-top: auto;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.dash-solve-btn {
+  padding: 0.45rem 1rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  border: 1px solid var(--color-success);
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--color-success);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.dash-solve-btn:hover:not(:disabled) {
+  background: var(--color-success);
+  color: var(--bg-primary);
+}
+
+.dash-solve-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.dash-solve-btn--fail {
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+}
+
+.dash-solve-status {
+  font-size: 0.75rem;
+  font-weight: 500;
+  animation: fadeIn 0.2s ease;
+}
+
+.dash-solve-status--fail {
+  color: var(--color-danger);
+}
+
 @media (max-width: 480px) {
   .dash-nav {
     padding: 0.65rem 0.75rem;

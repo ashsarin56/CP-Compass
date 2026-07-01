@@ -341,6 +341,44 @@ CP-COMPASS/
 - A Codeforces account (for testing)
 - Google OAuth credentials (optional — only needed for Google login)
 
+### Environment Variables
+
+Copy the example file and fill in your values:
+
+```bash
+cp server/.env.example server/.env
+```
+
+**Server (`server/.env`):**
+```env
+# Server
+PORT=3000
+NODE_ENV=development
+
+# MongoDB
+MONGODB_URI=mongodb+srv://<username>:<password>@cluster0.xxxxx.mongodb.net/?appName=Cluster0
+
+# Redis (optional — server runs without it)
+REDIS_URL=redis://localhost:6379
+
+# Codeforces API
+CF_API_BASE=https://codeforces.com/api
+
+# JWT
+JWT_SECRET=your_jwt_secret_here
+JWT_EXPIRES_IN=30d
+
+# Frontend URL (for CORS and OAuth redirects)
+FRONTEND_BASE_URL=http://localhost:5173
+
+# Google OAuth (optional — only needed for Google login)
+GOOGLE_CLIENT_ID=your_google_client_id.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+GOOGLE_CALLBACK_URL=http://localhost:3000/auth/google/callback
+```
+
+Only `MONGODB_URI`, `CF_API_BASE`, and `JWT_SECRET` are strictly required. Redis and Google OAuth are optional — the server gracefully degrades without them.
+
 ### Installation
 
 ```bash

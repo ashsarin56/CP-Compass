@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { getProfile, getRecommendations } from '../api'
+import { getProfile, getRecommendations, markProblemSolved } from '../api'
 import logo from '../assets/logo.svg'
 import './Dashboard.css'
 
@@ -7,6 +7,34 @@ export default function Dashboard({ handle, onBack }) {
   const [profile, setProfile] = useState(null)
   const [recs, setRecs] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [solveStates, setSolveStates] = useState({})
+
+  const handleMarkSolved = async (problemId) => {
+    setSolveStates(prev => ({ ...prev, [problemId]: 'checking' }))
+    try {
+      const result = await markProblemSolved(handle, problemId)
+      if (!result.data.solved) {
+        setSolveStates(prev => ({ ...prev, [problemId]: 'not_solved' }))
+        setTimeout(() => {
+          setSolveStates(prev => ({ ...prev, [problemId]: 'idle' }))
+        }, 4000)
+      } else {
+        setRecs(prev => ({
+          ...prev,
+          batch: result.data.updatedBatch
+        }))
+        setSolveStates(prev => {
+          const next = { ...prev }
+          delete next[problemId]
+          return next
+        })
+        const p = await getProfile(handle)
+        setProfile(p.data)
+      }
+    } catch {
+      setSolveStates(prev => ({ ...prev, [problemId]: 'idle' }))
+    }
+  }
 
   useEffect(() => {
     async function load() {
@@ -184,6 +212,28 @@ export default function Dashboard({ handle, onBack }) {
                     targets: {problem.targetWeakness}
                   </span>
                   <span className="dash-rec-role">{problem.role}</span>
+                </div>
+
+                <div className="dash-solve-area">
+                  <button
+                    className={`dash-solve-btn ${
+                      solveStates[problem.problemId] === 'not_solved' ? 'dash-solve-btn--fail' : ''
+                    }`}
+                    disabled={
+                      solveStates[problem.problemId] === 'checking' ||
+                      solveStates[problem.problemId] === 'replacing'
+                    }
+                    onClick={() => handleMarkSolved(problem.problemId)}
+                  >
+                    {solveStates[problem.problemId] === 'checking' ? '⏳ Verifying…' :
+                     solveStates[problem.problemId] === 'replacing' ? '🔄 Replacing…' :
+                     '✓ Mark Solved'}
+                  </button>
+                  {solveStates[problem.problemId] === 'not_solved' && (
+                    <span className="dash-solve-status dash-solve-status--fail">
+                      ✗ Not solved yet
+                    </span>
+                  )}
                 </div>
               </div>
             ))}

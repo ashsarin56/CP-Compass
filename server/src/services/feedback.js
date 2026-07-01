@@ -95,6 +95,31 @@ class FeedbackService extends BaseService {
     }
   }
 
+  async recordSolvedEvent(userId, problemId, batchId) {
+    const existing = await FeedbackEvent.findOne({
+      user_id: userId,
+      problem_id: problemId
+    });
+    if (existing) return existing;
+
+    const attempts = await Submission.countDocuments({
+      user_id: userId,
+      problem_id: problemId
+    });
+
+    const event = await FeedbackEvent.create({
+      user_id: userId,
+      problem_id: problemId,
+      batch_id: batchId,
+      outcome: 'solved',
+      attempts,
+      source: 'manual_verify'
+    });
+
+    console.log(`Manual feedback logged: ${problemId} solved in ${attempts} attempts`);
+    return event;
+  }
+
   async saveRecommendationBatch(userId, batch, validUntil) {
     await Recommendation.updateMany(
       { user_id: userId },
