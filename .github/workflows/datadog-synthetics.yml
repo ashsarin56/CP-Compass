@@ -19,6 +19,9 @@ on:
   pull_request:
     branches: [ "main" ]
 
+permissions:
+  contents: read
+
 jobs:
   build:
     if: ${{ secrets.DD_API_KEY != '' && secrets.DD_APP_KEY != '' }}
@@ -35,4 +38,3 @@ jobs:
         api_key: ${{secrets.DD_API_KEY}}
         app_key: ${{secrets.DD_APP_KEY}}
         test_search_query: 'tag:e2e-tests' #Modify this tag to suit your tagging strategy
-
